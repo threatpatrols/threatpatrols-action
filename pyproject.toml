@@ -1,0 +1,86 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "threatpatrols-action"
+version = "0.1.0"
+description = ""
+authors = ["Nicholas de Jong <ndejong@threatpatrols.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+packages = [{ include = "threatpatrols_action", from = "src" }]
+classifiers = []
+keywords = []
+
+[tool.poetry.urls]
+# "Bug Tracker" = ""
+# Documentation = ""
+# Homepage = ""
+# Repository = ""
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiofiles = "*"                  # https://pypi.org/project/aiofiles/#history
+asgi-correlation-id = "*"       # https://pypi.org/project/asgi-correlation-id/#history
+dynaconf = "*"                  # https://pypi.org/project/dynaconf/#history
+fastapi = "*"                   # https://pypi.org/project/fastapi/#history
+"httpx[http2]" = "*"            # https://pypi.org/project/httpx/#history
+psutil = "*"                    # https://pypi.org/project/psutil/#history
+pydantic = "*"                  # https://pypi.org/project/pydantic/#history
+pydantic-core = "*"             # https://pypi.org/project/pydantic-core/#history
+typing = "*"                    # https://pypi.org/project/typing/#history
+
+[tool.poetry.dev-dependencies]
+black = "*"
+flake8 = "*"
+isort = "*"
+# mypy = "*"
+pycln = "^2.1.3"
+pytest = "*"
+pytest-asyncio = "*"
+
+[tool.poetry.plugins."slap.plugins.check"]
+changelog = "slap.ext.checks.changelog:ChangelogValidationCheckPlugin"
+general = "slap.ext.checks.general:GeneralChecksPlugin"
+poetry = "slap.ext.checks.poetry:PoetryChecksPlugin"
+release = "slap.ext.checks.release:ReleaseChecksPlugin"
+
+[tool.slap]
+typed = true
+release.branch = "dev"
+
+
+[tool.slap.test]
+check  = "slap check"
+black  = "black --check src/ tests/"
+flake8 = "flake8 src/ tests/"
+isort  = "isort --check-only src/ tests/"
+# mypy   = "dmypy run src/"
+pycln  = "pycln src/ tests/ --check"
+pytest = "pytest tests/ -vv"
+
+[tool.slap.run]
+format = "pycln src/ tests/ && black src/ tests/ && isort src/ tests/"
+
+[tool.mypy]
+strict = false
+python_version = "3.10"
+explicit_package_bases = true
+mypy_path = ["src"]
+namespace_packages = true
+pretty = true
+show_error_codes = true
+show_error_context = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_ignores = true
+
+[tool.isort]
+profile = "black"
+line_length = 120
+combine_as_imports = true
+
+[tool.black]
+line-length = 120
