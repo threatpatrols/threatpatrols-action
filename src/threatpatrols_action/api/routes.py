@@ -177,11 +177,12 @@ class ActionRoutes:
 
         return TaskResponse(**task_data)
 
-    async def health_check(self) -> HealthResponse:
+    async def health_check(self, background_tasks: BackgroundTasks) -> HealthResponse:
         return HealthResponse(
             status="healthy",
             memory_usage=psutil.virtual_memory().percent,
             cpu_usage=psutil.cpu_percent(),
+            background_tasks=len(background_tasks.tasks)
         )
 
     async def swagger_ui_html(self):
