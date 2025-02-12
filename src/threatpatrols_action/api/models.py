@@ -18,15 +18,14 @@ class TaskResponse(BaseModel):
 
     model_config = ConfigDict(
         json_schema_extra={
-            "examples": [
-                {
-                    "task_id": "12345678",
-                    "state": "pending",
-                    "tags": {"request_id": "ff0e4d8113924be6-TPX"},
-                }
-            ]
+            "example": {"task_id": "12345678", "state": "pending", "tags": {"request_id": "ff0e4d8113924be6-TPX"}}
         }
     )
+
+
+class TaskListItemResponse(BaseModel):
+    task_id: str
+    state: TaskState
 
 
 class HealthResponse(BaseModel):
@@ -36,5 +35,7 @@ class HealthResponse(BaseModel):
     background_tasks: int
 
     model_config = ConfigDict(
-        json_schema_extra={"examples": [{"status": "healthy", "memory_usage": 44.2, "cpu_usage": 14.3, "background_tasks": 0}]}
+        json_schema_extra={
+            "example": {"status": "healthy", "memory_usage": 44.2, "cpu_usage": 14.3, "background_tasks": 0}
+        }
     )

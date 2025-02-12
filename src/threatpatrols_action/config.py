@@ -28,7 +28,13 @@ class DynaconfSettings(Dynaconf):
     USER_TAG_MAX_KEY_LENGTH: int = 64
     USER_TAG_MAX_VALUE_LENGTH: int = 256
 
-    OPENAPI_FAVICON_URL: str = "https://www.threatpatrols.com/favicon.ico"
+    # https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js
+    # https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css
+
+    SWAGGER_UI_JS_URL: str = "/docs/static/js/swagger-ui-bundle-v5.18.2.min.js"
+    SWAGGER_UI_CSS_URL: str = "/docs/static/css/swagger-ui-v5.18.2.min.css"
+    SWAGGER_UI_CSS_OVERRIDES_URL: str = "/docs/static/css/overrides.css"
+    SWAGGER_UI_FAVICON_URL: str = "https://www.threatpatrols.com/favicon.ico"
 
     STATE_FILESYSTEM_ROOT_PATH: str = "/tmp/tpas"
 

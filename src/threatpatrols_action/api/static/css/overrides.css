@@ -1,0 +1,36 @@
+
+.swagger-ui .information-container .info {
+    margin-top: 30px;
+    margin-bottom: 0px;
+}
+
+.swagger-ui .scheme-container {
+    padding: 0px 0px 15px 0px;
+    margin: 0px;
+    box-shadow: none;
+    background: none;
+}
+
+.swagger-ui .scheme-container div.servers {
+    display: none;
+}
+
+.swagger-ui .scheme-container span.servers-title {
+    display: none;
+}
+
+.swagger-ui hgroup.main a.link {
+    display: none;
+}
+
+.swagger-ui hgroup.main h2.title .version-stamp {
+    display: none;
+}
+
+.swagger-ui section.response-controls {
+    display: none;
+}
+
+.swagger-ui div.opblock-body div.model-box {
+    display: block;
+}

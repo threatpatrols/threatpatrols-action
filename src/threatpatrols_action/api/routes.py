@@ -3,7 +3,6 @@ from typing import Annotated, Callable
 
 import psutil
 from fastapi import APIRouter, BackgroundTasks, Depends, Header
-from fastapi.openapi.docs import get_swagger_ui_html
 
 from .. import action_models, config, state_handlers
 from ..exceptions import ThreatPatrolsApiException, ThreatPatrolsException
@@ -11,10 +10,10 @@ from ..shared.lib.hlid import HLID
 from ..shared.lib.state import get_state_handler
 from .action import background_action_caller, foreground_action_caller
 from .controllers import check_reserved_action_tags, validate_bearer_token
-from .models import HealthResponse, TaskResponse, TaskState
+from .lib.swagger import get_swagger_docs_response
+from .models import HealthResponse, TaskListItemResponse, TaskResponse, TaskState
 
 ACTION_NAME = config.ACTION_NAME
-OPENAPI_FAVICON_URL = config.OPENAPI_FAVICON_URL
 
 STATE_FILESYSTEM_ROOT_PATH = config.STATE_FILESYSTEM_ROOT_PATH
 
@@ -42,7 +41,7 @@ class ActionRoutes:
 
         if config.DEBUG:
             self.router.add_api_route(
-                "/docs", self.swagger_ui_html, methods=["GET"], tags=["System"], include_in_schema=False
+                "/docs", get_swagger_docs_response, methods=["GET"], tags=["System"], include_in_schema=False
             )
         self.router.add_api_route(
             "/health",
@@ -51,34 +50,63 @@ class ActionRoutes:
             tags=["System"],
             summary="Get basic system-health and system-status data.",
         )
+
+        # Call
         self.router.add_api_route(
-            f"/{ACTION_NAME}",
+            f"/{ACTION_NAME}/call",
+            self.action_foreground_list,
+            methods=["GET"],
+            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Direct"],
+            summary=f"Get a list of the {ACTION_NAME} action calls.",
+        )
+        self.router.add_api_route(
+            f"/{ACTION_NAME}/call",
             self.action_foreground,
             methods=["POST"],
-            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title()],
+            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Direct"],
             summary=f"Directly call the {ACTION_NAME} action without sending to background.",
         )
         self.router.add_api_route(
-            f"/{ACTION_NAME}/{{call_id}}",
-            self.get_action_foreground_data,
+            f"/{ACTION_NAME}/call/{{call_id}}",
+            self.action_foreground_data,
             methods=["GET"],
-            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title()],
-            summary=f"Get previous {ACTION_NAME} action call result data by call_id.",
+            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Direct"],
+            summary=f"Get a previous {ACTION_NAME} action call result by call_id.",
+        )
+
+        # Task
+        self.router.add_api_route(
+            f"/{ACTION_NAME}/task",
+            self.action_background_task_list,
+            methods=["GET"],
+            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background Task"],
+            summary=f"Get a list of the {ACTION_NAME} action background tasks.",
         )
         self.router.add_api_route(
             f"/{ACTION_NAME}/task",
             self.action_background_task,
             methods=["POST"],
-            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title()],
+            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background Task"],
             summary=f"Enqueue a {ACTION_NAME} action as a background task.",
         )
         self.router.add_api_route(
             f"/{ACTION_NAME}/task/{{task_id}}",
-            self.get_action_background_task_data,
+            self.action_background_task_data,
             methods=["GET"],
-            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title()],
-            summary=f"Get information on background task {ACTION_NAME} action.",
+            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background Task"],
+            summary=f"Get {ACTION_NAME} action background task information by task_id.",
         )
+
+    async def action_foreground_list(
+        self,
+        api_key: Annotated[validate_bearer_token, Depends()],
+        request_id: str = Header(None, include_in_schema=False),  # NB: request_id from "Request-Id" header
+    ) -> list[action_models.ActionListItemResponse]:
+
+        # TODO: get a list of the action items and return
+
+        return []
+
 
     async def action_foreground(
         self,
@@ -109,7 +137,7 @@ class ActionRoutes:
 
         return action_response
 
-    async def get_action_foreground_data(
+    async def action_foreground_data(
         self,
         api_key: Annotated[validate_bearer_token, Depends()],
         call_id: str,
@@ -128,6 +156,20 @@ class ActionRoutes:
             )
 
         return action_models.ActionResponse(**call_data)
+
+    async def action_background_task_list(
+        self,
+        api_key: Annotated[validate_bearer_token, Depends()],
+        request_id: str = Header(None, include_in_schema=False),  # NB: request_id from "Request-Id" header
+    ) -> list[TaskListItemResponse]:
+
+        # poke key_file to get the tasks base path
+        # task_base_path = state_handlers.StateHandler.key_file(key="task/poke").parent
+        # print(task_base_path)
+
+        # TODO: get a list of the action items and return
+
+        return []
 
     async def action_background_task(
         self,
@@ -157,7 +199,7 @@ class ActionRoutes:
         )
         return task_response
 
-    async def get_action_background_task_data(
+    async def action_background_task_data(
         self,
         api_key: Annotated[validate_bearer_token, Depends()],
         task_id: str,
@@ -177,24 +219,11 @@ class ActionRoutes:
 
         return TaskResponse(**task_data)
 
+
     async def health_check(self, background_tasks: BackgroundTasks) -> HealthResponse:
         return HealthResponse(
             status="healthy",
             memory_usage=psutil.virtual_memory().percent,
             cpu_usage=psutil.cpu_percent(),
-            background_tasks=len(background_tasks.tasks)
-        )
-
-    async def swagger_ui_html(self):
-        return get_swagger_ui_html(
-            title=f"Action {ACTION_NAME.title()}",
-            openapi_url="/openapi.json",
-            swagger_favicon_url=OPENAPI_FAVICON_URL,
-            swagger_ui_parameters={
-                "defaultModelsExpandDepth": -1,  # prevent the model Schema table from rendering
-                "displayOperationId": False,
-                "displayRequestDuration": True,
-                "tryItOutEnabled": True,
-                "requestSnippets": True,
-            },
+            background_tasks=len(background_tasks.tasks),
         )
