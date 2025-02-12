@@ -53,48 +53,48 @@ class ActionRoutes:
 
         # Call
         self.router.add_api_route(
-            f"/{ACTION_NAME}/call",
-            self.action_foreground_list,
-            methods=["GET"],
-            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Direct"],
-            summary=f"Get a list of the {ACTION_NAME} action calls.",
-        )
-        self.router.add_api_route(
-            f"/{ACTION_NAME}/call",
+            f"/{ACTION_NAME}/calls",
             self.action_foreground,
             methods=["POST"],
             tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Direct"],
-            summary=f"Directly call the {ACTION_NAME} action without sending to background.",
+            summary=f"Create a {ACTION_NAME!r} action call record and execute the action without going to background.",
         )
         self.router.add_api_route(
-            f"/{ACTION_NAME}/call/{{call_id}}",
+            f"/{ACTION_NAME}/calls",
+            self.action_foreground_list,
+            methods=["GET"],
+            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Direct"],
+            summary=f"Get a list of {ACTION_NAME!r} action call summary records.",
+        )
+        self.router.add_api_route(
+            f"/{ACTION_NAME}/calls/{{call_id}}",
             self.action_foreground_data,
             methods=["GET"],
             tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Direct"],
-            summary=f"Get a previous {ACTION_NAME} action call result by call_id.",
+            summary=f"Get a full {ACTION_NAME!r} action call record by call_id.",
         )
 
         # Task
         self.router.add_api_route(
-            f"/{ACTION_NAME}/task",
-            self.action_background_task_list,
-            methods=["GET"],
-            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background Task"],
-            summary=f"Get a list of the {ACTION_NAME} action background tasks.",
-        )
-        self.router.add_api_route(
-            f"/{ACTION_NAME}/task",
+            f"/{ACTION_NAME}/tasks",
             self.action_background_task,
             methods=["POST"],
-            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background Task"],
-            summary=f"Enqueue a {ACTION_NAME} action as a background task.",
+            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background"],
+            summary=f"Create a {ACTION_NAME!r} background task record and enqueue the action to be executed.",
         )
         self.router.add_api_route(
-            f"/{ACTION_NAME}/task/{{task_id}}",
+            f"/{ACTION_NAME}/tasks",
+            self.action_background_task_list,
+            methods=["GET"],
+            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background"],
+            summary=f"Get a list of {ACTION_NAME!r} background task summary records.",
+        )
+        self.router.add_api_route(
+            f"/{ACTION_NAME}/tasks/{{task_id}}",
             self.action_background_task_data,
             methods=["GET"],
-            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background Task"],
-            summary=f"Get {ACTION_NAME} action background task information by task_id.",
+            tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background"],
+            summary=f"Get a full {ACTION_NAME} background task record by task_id.",
         )
 
     async def action_foreground_list(
@@ -106,7 +106,6 @@ class ActionRoutes:
         # TODO: get a list of the action items and return
 
         return []
-
 
     async def action_foreground(
         self,
@@ -218,7 +217,6 @@ class ActionRoutes:
             )
 
         return TaskResponse(**task_data)
-
 
     async def health_check(self, background_tasks: BackgroundTasks) -> HealthResponse:
         return HealthResponse(

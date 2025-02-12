@@ -1,11 +1,15 @@
 import os.path
+from typing import Callable
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import RedirectResponse
 
 from .. import action_models
+from ..exceptions import generate_api_exception_response_handlers
+from ..shared.lib.logger_init import logger_get, logger_setlevel
 from .lib.openapi import custom_openapi
+from .lib.validators import action_model_validator
 from .middlewares import load_middlewares
 from .models import HealthResponse, TaskResponse, TaskState
 from .routes import ActionRoutes  # noqa: F401
@@ -28,12 +32,31 @@ def add_redirect_route(app: FastAPI, request_path, redirect_url, tags=None, summ
         return RedirectResponse(url=redirect_url)
 
 
-def load_fastapi_components(app: FastAPI, action_routes):
+def load_api_app(config, action: Callable):
 
-    # Include routes
+    # Set the logger level early
+    logger_get(name=config.LOGGER_NAME)
+    logger_setlevel(name=config.LOGGER_NAME, loglevel=config.LOGGER_LEVEL)
+
+    # Establish the FastAPI app instance
+    app = FastAPI(
+        debug=config.DEBUG,
+        version=config.VERSION,
+        title=config.TITLE,
+        docs_url=None,
+        exception_handlers=generate_api_exception_response_handlers(),
+    )
+
+    # Check action supplied models
+    action_model_validator(action_models=action_models)
+
+    # Load action routes
+    action_routes = ActionRoutes(action=action)
+
+    # Include routes into the app itself
     app.include_router(action_routes.router)
 
-    # Load middleware
+    # Load app middleware
     load_middlewares(app=app)
 
     # Apply redirects
@@ -42,3 +65,5 @@ def load_fastapi_components(app: FastAPI, action_routes):
 
     # Customize the OpenAPI schema
     app.openapi_schema = custom_openapi(app)
+
+    return app

@@ -24,6 +24,8 @@ class DynaconfSettings(Dynaconf):
     VERSION: str
     ACTION_NAME: str
 
+    API_PORT: int = 11235
+
     USER_TAG_MAX_COUNT: int = 16
     USER_TAG_MAX_KEY_LENGTH: int = 64
     USER_TAG_MAX_VALUE_LENGTH: int = 256

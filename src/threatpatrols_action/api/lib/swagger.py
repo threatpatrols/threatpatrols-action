@@ -23,19 +23,10 @@ def get_swagger_docs_html(doc_expansion: str = "list") -> str:
             "displayRequestDuration": True,
             "tryItOutEnabled": True,
             "requestSnippets": True,
+            "tagsSorter": None,
+            "operationsSorter": "method",
+            "filter": False,
         },
-        # https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
-        # swagger_ui_parameters={
-        #     "layout": "BaseLayout",
-        #     "defaultModelsExpandDepth": -1,
-        #     "docExpansion": doc_expansion,
-        #     "tagsSorter": "alpha",
-        #     "operationsSorter": "alpha",
-        #     "filter": True,
-        #     "defaultModelRendering": "example",
-        #     "displayOperationId": False,
-        #     "displayRequestDuration": True,
-        # },
     )
     return swagger_ui_html.body.decode()
 
