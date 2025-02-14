@@ -2,9 +2,10 @@ import datetime
 import logging
 from typing import Callable
 
+from hlid import HLID
+
 from .. import config, state_handlers
 from ..exceptions import ThreatPatrolsException
-from ..shared.lib.hlid import HLID
 from .lib.background_task import background_task_observability
 from .models import TaskResponse, TaskState
 
@@ -35,7 +36,7 @@ async def foreground_action_caller(action: Callable, *_, **kwargs):
     )
     validate_action_tags(tags=kwargs["tags"])
 
-    state_key = "call/" + call_id.split("-")[0] + "/" + call_id
+    state_key = "calls/" + call_id.split("-")[0] + "/" + call_id
     await state_handlers.StateHandler.save_state(key=state_key, data=kwargs, extension="in")
 
     try:
@@ -59,7 +60,7 @@ async def background_action_caller(action: Callable, *_, task_id: str, **kwargs)
 
     tags = kwargs.get("tags")
 
-    state_key = "task/" + task_id.split("-")[0] + "/" + task_id
+    state_key = "tasks/" + task_id.split("-")[0] + "/" + task_id
     task_response = TaskResponse(task_id=task_id, state=TaskState.IN_PROGRESS, tags=tags)
     await state_handlers.StateHandler.save_state(key=state_key, data=task_response.model_dump())
 

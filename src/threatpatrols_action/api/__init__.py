@@ -35,8 +35,11 @@ def add_redirect_route(app: FastAPI, request_path, redirect_url, tags=None, summ
 def load_api_app(config, action: Callable):
 
     # Set the logger level early
-    logger_get(name=config.LOGGER_NAME)
+    logger = logger_get(name=config.LOGGER_NAME)
     logger_setlevel(name=config.LOGGER_NAME, loglevel=config.LOGGER_LEVEL)
+
+    logger.info(f"{config.TITLE} v{config.VERSION}")
+    logger.info(f"CONFIG_FILE = {str(config.CONFIG_FILE)}")
 
     # Establish the FastAPI app instance
     app = FastAPI(

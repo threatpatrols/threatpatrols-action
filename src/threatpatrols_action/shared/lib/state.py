@@ -9,6 +9,7 @@ from typing import Any
 from uuid import uuid4
 
 import aiofiles
+from hlid import HLID
 
 from ...exceptions import ThreatPatrolsException
 from .jsonable import jsonable_encoder
@@ -52,8 +53,27 @@ class StateHandlerFilesystem:
             full_path.parent.mkdir(parents=True, exist_ok=True)
         return Path(f"{str(full_path)}.{extension}")
 
-    async def stale_state_reaper(self, key):
-        pass
+    async def remove_expired_states(
+        self, key: str, extension: str = "data", filter_match: list[str] = None, filter_exclude: list[str] = None
+    ):
+        root_path = self.key_file(key=f"{key}/faux", extension="faux").parent
+        for path in sorted(root_path.rglob(f"*.{extension}.metadata"), reverse=True):
+            path_hlid = path.name.split(".")[0]
+            if HLID(path_hlid).age > self.state_ttl_seconds:
+                os.unlink(path)
+
+    async def find_states(
+        self, key: str, extension: str = "data", filter_match: list[str] = None, filter_exclude: list[str] = None
+    ):
+        results = []
+        root_path = self.key_file(key=f"{key}/faux", extension="faux").parent
+        for path in sorted(root_path.rglob(f"*.{extension}.metadata"), reverse=True):
+            path_hlid = path.name.split(".")[0]
+            if HLID(path_hlid).age < self.state_ttl_seconds:
+                state_key = f"{key}/" + path_hlid.split("-")[0] + "/" + path_hlid
+                state = await self.load_state(key=state_key, extension=extension)
+                results.append(state)
+        return results
 
     async def load_state(self, key: str, extension: str = "data", _retry_count=0):
 

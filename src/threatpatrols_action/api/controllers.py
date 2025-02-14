@@ -1,3 +1,5 @@
+from copy import copy
+
 from fastapi import Depends, HTTPException, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -19,15 +21,16 @@ def __future_improvement_get_api_key(bearer_token: str):
     if len(api_key_id) < 4 or len(api_key_secret) < 4:
         raise ThreatPatrolsApiException(status_code=401, detail="Invalid bearer_token component formats.")
 
-    if not config.API_KEYS:
+    if not config.CREDENTIALS:
         raise ThreatPatrolsApiException(
-            status_code=401, detail="No API_KEYS defined.", user_detail="API authentication not possible"
+            status_code=401, detail="No CREDENTIALS defined.", user_detail="API authentication not possible"
         )
 
-    for api_key_item in config.API_KEYS:
-        if api_key_item.get("id", "") == api_key_id and api_key_item.get("secret", "") == api_key_secret:
-            api_key_item["secret"] = "****"
-            return api_key_item
+    if config.CREDENTIALS.get(api_key_id, {}).get("secret", "") == api_key_secret:
+        credential = copy(config.CREDENTIALS.get(api_key_id))
+        credential["id"] = api_key_id
+        credential["secret"] = "****"
+        return credential
 
 
 def validate_bearer_token(credentials: HTTPAuthorizationCredentials = Security(HTTPBearer())):
