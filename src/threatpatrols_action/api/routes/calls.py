@@ -22,7 +22,7 @@ state_handler = get_state_handler(
 
 @router.get(
     f"/{ACTION_NAME}/calls",
-    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Direct"],
+    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " direct action calls"],
     summary=f"Get a list of {ACTION_NAME!r} action call summary records.",
 )
 async def action_calls_get_list(
@@ -41,7 +41,7 @@ async def action_calls_get_list(
 
 @router.get(
     f"/{ACTION_NAME}/calls/{{call_id}}",
-    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Direct"],
+    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " direct action calls"],
     summary=f"Get a full {ACTION_NAME!r} action call record by call_id.",
 )
 async def action_calls_get_item(
@@ -66,7 +66,7 @@ async def action_calls_get_item(
 
 @router.post(
     f"/{ACTION_NAME}/calls",
-    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Direct"],
+    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " direct action calls"],
     summary=f"Create a {ACTION_NAME!r} action call record and execute the action without going to background.",
 )
 async def action_calls_post(

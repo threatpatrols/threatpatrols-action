@@ -68,11 +68,9 @@ def load_api_app(config, action: Callable):
     # Load app middleware
     load_middlewares(app=app)
 
-    # Apply redirects
-    add_static_route(app, request_path=f"/docs/static", files_directory="api/static")
-    add_redirect_route(app, request_path="/", redirect_url="/docs", tags=["System"], summary="Redirect to docs.")
-
     if config.DEBUG:
+        add_static_route(app, request_path=f"/docs/static", files_directory="api/static")
+        add_redirect_route(app, request_path="/", redirect_url="/docs", tags=["System"], summary="Redirect to docs.")
         app.add_api_route("/docs", get_swagger_docs_response, methods=["GET"], tags=["System"], include_in_schema=False)
 
     # Customize the OpenAPI schema

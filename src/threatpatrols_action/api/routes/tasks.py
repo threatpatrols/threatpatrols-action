@@ -24,7 +24,7 @@ state_handler = get_state_handler(
 
 @router.get(
     f"/{ACTION_NAME}/tasks",
-    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background"],
+    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " background task action calls"],
     summary=f"Get a list of {ACTION_NAME!r} background task summary records.",
 )
 async def action_tasks_get_list(
@@ -40,7 +40,7 @@ async def action_tasks_get_list(
 
 @router.get(
     f"/{ACTION_NAME}/tasks/{{task_id}}",
-    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background"],
+    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " background task action calls"],
     summary=f"Get a full {ACTION_NAME} background task record by task_id.",
 )
 async def action_tasks_get_item(
@@ -65,7 +65,7 @@ async def action_tasks_get_item(
 
 @router.post(
     f"/{ACTION_NAME}/tasks",
-    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " Background"],
+    tags=[ACTION_NAME.replace("-", " ").replace("_", " ").title() + " background task action calls"],
     summary=f"Create a {ACTION_NAME!r} background task record and enqueue the action to be executed.",
 )
 async def action_tasks_post(
@@ -93,6 +93,5 @@ async def action_tasks_post(
     await state_handler.save_state(key=state_key, data=task_response)
 
     action_function = getattr(action_functions, config.ACTION_NAME)
-
     background_tasks.add_task(background_action_caller, action_function, task_id=task_id, **action_request.model_dump())
     return task_response

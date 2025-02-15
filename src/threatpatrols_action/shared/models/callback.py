@@ -1,19 +1,10 @@
-from typing import Optional
-
-from pydantic import BaseModel
+from . import TagsBaseModel
 
 
-class Callback(BaseModel):
+class Callback(TagsBaseModel):
     action_name: str
     action_call_id: str
     action_task_id: str
-
-    # tags is always required
-    tags: Optional[dict[str, str]] = None
-
-    def model_post_init(self, *_, **__) -> None:
-        if not self.tags:
-            self.tags = {}
 
 
 class CallbackHttp(Callback):
