@@ -3,8 +3,8 @@ import time
 
 from fastapi import Request
 
-from threatpatrols_action import config
-from threatpatrols_action.shared.lib.validators import is_user_agent
+from ... import config
+from ...shared.validators.values import is_user_agent
 
 
 def add_request_logger_middleware(app):

@@ -7,11 +7,11 @@ from hlid import HLID
 
 from .. import action_models, config, state_handlers
 from ..exceptions import ThreatPatrolsApiException, ThreatPatrolsException
+from ..shared.lib.action_caller import background_action_caller, foreground_action_caller
 from ..shared.lib.state import get_state_handler
-from .action import background_action_caller, foreground_action_caller
+from ..shared.models import HealthResponse, TaskListItemResponse, TaskResponse, TaskState
 from .controllers import check_reserved_action_tags, validate_bearer_token
 from .lib.swagger import get_swagger_docs_response
-from .models import HealthResponse, TaskListItemResponse, TaskResponse, TaskState
 
 ACTION_NAME = config.ACTION_NAME
 

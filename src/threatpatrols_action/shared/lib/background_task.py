@@ -2,7 +2,7 @@ import logging
 from functools import wraps
 from typing import Any, Callable
 
-from threatpatrols_action import config
+from ... import config
 
 logger = logging.getLogger(config.LOGGER_NAME)
 

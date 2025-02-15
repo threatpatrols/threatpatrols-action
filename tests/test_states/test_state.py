@@ -1,6 +1,6 @@
 import pytest
+from hlid import hlid
 
-from threatpatrols_action.shared.lib.hlid import hlid
 from threatpatrols_action.shared.lib.state import get_state_handler
 
 

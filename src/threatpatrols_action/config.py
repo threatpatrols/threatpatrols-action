@@ -95,9 +95,6 @@ if envvar:
 else:
     config_file = find_config_in_subpaths(config_filepaths=[Path("config.yml"), Path("config.yaml")])
 
-if not config_file:
-    raise FileNotFoundError("Unable to locate config file for threatpatrols-action")
-
 
 config = DynaconfSettings(
     load_dotenv=False,

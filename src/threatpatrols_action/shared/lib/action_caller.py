@@ -4,14 +4,11 @@ from typing import Callable
 
 from hlid import HLID
 
-from .. import config, state_handlers
-from ..exceptions import ThreatPatrolsException
-from .lib.background_task import background_task_observability
-from .models import TaskResponse, TaskState
-
-USER_TAG_MAX_COUNT = config.USER_TAG_MAX_COUNT
-USER_TAG_MAX_KEY_LENGTH = config.USER_TAG_MAX_KEY_LENGTH
-USER_TAG_MAX_VALUE_LENGTH = config.USER_TAG_MAX_VALUE_LENGTH
+from ... import config, state_handlers
+from ...exceptions import ThreatPatrolsException
+from ...shared.models import TaskResponse, TaskState
+from ...shared.validators.tags import validate_action_tags
+from ..lib.background_task import background_task_observability
 
 logger = logging.getLogger(config.LOGGER_NAME)
 
@@ -69,14 +66,3 @@ async def background_action_caller(action: Callable, *_, task_id: str, **kwargs)
 
     task_response = TaskResponse(task_id=task_id, state=TaskState.COMPLETE, tags=tags)
     await state_handlers.StateHandler.save_state(key=state_key, data=task_response.model_dump())
-
-
-def validate_action_tags(tags):
-    if len(tags) > USER_TAG_MAX_COUNT:
-        raise ValueError(f"User supplied tags exceeds {USER_TAG_MAX_COUNT} limit per action request")
-
-    if any(len(str(v)) > USER_TAG_MAX_VALUE_LENGTH for v in tags.values()):
-        raise ValueError(f"User supplied tag-value exceeds {USER_TAG_MAX_VALUE_LENGTH} length in action request")
-
-    if any(len(str(k)) > USER_TAG_MAX_KEY_LENGTH for k in tags.keys()):
-        raise ValueError(f"User supplied tag-key exceeds {USER_TAG_MAX_KEY_LENGTH} length in action request")

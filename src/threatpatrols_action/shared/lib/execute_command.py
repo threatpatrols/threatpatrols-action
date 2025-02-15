@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from tempfile import gettempdir
 
-from threatpatrols_action import config
-from threatpatrols_action.exceptions import ThreatPatrolsException
+from ... import config
+from ...exceptions import ThreatPatrolsException
 
 logger = logging.getLogger(config.LOGGER_NAME)
 

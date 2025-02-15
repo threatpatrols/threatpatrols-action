@@ -2,8 +2,8 @@ import logging
 
 import httpx
 
-from threatpatrols_action import config
-from threatpatrols_action.exceptions import ThreatPatrolsException
+from ... import config
+from ...exceptions import ThreatPatrolsException
 
 TITLE = config.TITLE
 VERSION = config.VERSION
