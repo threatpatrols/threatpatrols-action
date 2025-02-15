@@ -11,6 +11,14 @@ __version__ = "0.1.0"
 from .config import config  # noqa: F401
 
 
+class action_functions(dict):  # noqa
+    def __getattr__(self, key):
+        return self[key]
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+
 class action_models(dict):  # noqa
     def __getattr__(self, key):
         return self[key]

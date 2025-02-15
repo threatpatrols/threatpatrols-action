@@ -5,14 +5,16 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import RedirectResponse
 
-from .. import action_models
+from .. import action_functions, action_models
 from ..exceptions import generate_api_exception_response_handlers
 from ..shared.lib.logger_init import logger_get, logger_setlevel
 from ..shared.models import HealthResponse, TaskResponse, TaskState
 from ..shared.validators.models import action_model_validator
 from .lib.openapi import custom_openapi
+from .lib.swagger import get_swagger_docs_response
 from .middlewares import load_middlewares
-from .routes import ActionRoutes  # noqa: F401
+
+# from .routes import ActionRoutes  # noqa: F401
 
 action_models.TaskResponse = TaskResponse
 action_models.TaskState = TaskState
@@ -41,6 +43,9 @@ def load_api_app(config, action: Callable):
     logger.info(f"{config.TITLE} v{config.VERSION}")
     logger.info(f"CONFIG_FILE = {str(config.CONFIG_FILE)}")
 
+    # Assign the main action
+    setattr(action_functions, config.ACTION_NAME, action)
+
     # Establish the FastAPI app instance
     app = FastAPI(
         debug=config.DEBUG,
@@ -53,11 +58,12 @@ def load_api_app(config, action: Callable):
     # Check action supplied models
     action_model_validator(action_models=action_models)
 
-    # Load action routes
-    action_routes = ActionRoutes(action=action)
+    # Load routes
+    from threatpatrols_action.api.routes import calls_routes, systems_routes, tasks_routes
 
-    # Include routes into the app itself
-    app.include_router(action_routes.router)
+    app.include_router(systems_routes)
+    app.include_router(calls_routes)
+    app.include_router(tasks_routes)
 
     # Load app middleware
     load_middlewares(app=app)
@@ -65,6 +71,9 @@ def load_api_app(config, action: Callable):
     # Apply redirects
     add_static_route(app, request_path=f"/docs/static", files_directory="api/static")
     add_redirect_route(app, request_path="/", redirect_url="/docs", tags=["System"], summary="Redirect to docs.")
+
+    if config.DEBUG:
+        app.add_api_route("/docs", get_swagger_docs_response, methods=["GET"], tags=["System"], include_in_schema=False)
 
     # Customize the OpenAPI schema
     app.openapi_schema = custom_openapi(app)
