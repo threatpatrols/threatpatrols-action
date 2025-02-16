@@ -1,7 +1,7 @@
 import logging
+import platform
 from inspect import signature
 from typing import Callable
-import platform
 
 from hlid import HLID
 

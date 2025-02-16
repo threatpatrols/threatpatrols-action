@@ -2,7 +2,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict
 
-from . import TagsBaseModel
+from . import PrivateHandleBaseModel
 
 
 class TaskState(StrEnum):
@@ -17,7 +17,7 @@ class TaskListItemResponse(BaseModel):
     state: TaskState
 
 
-class TaskResponse(TagsBaseModel):
+class TaskResponse(PrivateHandleBaseModel):
     task_id: str
     state: TaskState
 

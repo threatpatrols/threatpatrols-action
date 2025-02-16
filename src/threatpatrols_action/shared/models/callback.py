@@ -1,13 +1,13 @@
 from typing import Optional
 
-from . import TagsBaseModel
+from . import PrivateHandleBaseModel
 
 
-class Callback(TagsBaseModel):
+class Callback(PrivateHandleBaseModel):
     action_name: str
     action_call_id: str
     action_task_id: str
-    _tags: Optional[dict[str, str]] = None  # TODO: replace via TagsBaseModel
+    _tags: Optional[dict[str, str]] = None  # TODO: replace via PrivateHandleBaseModel
 
 
 class CallbackHttp(Callback):
