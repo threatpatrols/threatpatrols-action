@@ -7,6 +7,7 @@ from ... import action_functions, action_models, config
 from ...exceptions import ThreatPatrolsApiException, ThreatPatrolsException
 from ...shared.lib.action_caller import foreground_action_caller
 from ...shared.lib.state import get_state_handler
+from ...shared.lib.strings import dict_as_string
 from ..controllers import check_reserved_action_tags, validate_bearer_token
 
 ACTION_NAME = config.ACTION_NAME
@@ -29,8 +30,8 @@ async def action_calls_get_list(
     api_key: Annotated[validate_bearer_token, Depends()],
     request_id: str = Header(None, include_in_schema=False),  # NB: request_id from "Request-Id" header
 ) -> list[action_models.ActionListItemResponse]:
-    assert api_key is not None
-    assert request_id is not None
+    assert api_key is not None and len(api_key) > 0
+    assert request_id is not None and len(request_id) > 0
 
     results = []
     for item in await state_handler.find_states(key="calls", extension="out"):
@@ -49,8 +50,8 @@ async def action_calls_get_item(
     api_key: Annotated[validate_bearer_token, Depends()],
     request_id: str = Header(None, include_in_schema=False),  # NB: request_id from "Request-Id" header
 ) -> action_models.ActionResponse:
-    assert api_key is not None
-    assert request_id is not None
+    assert api_key is not None and len(api_key) > 0
+    assert request_id is not None and len(request_id) > 0
 
     state_key = "calls/" + call_id.split("-")[0] + "/" + call_id
 
@@ -74,28 +75,32 @@ async def action_calls_post(
     api_key: Annotated[validate_bearer_token, Depends()],
     request_id: str = Header(None, include_in_schema=False),  # NB: request_id from "Request-Id" header
 ) -> action_models.ActionResponse:
-    assert api_key is not None
-    assert request_id is not None
+    assert api_key is not None and len(api_key) > 0
+    assert request_id is not None and len(request_id) > 0
+
+    # provides access _tags private attribute
+    request_data = action_request.model_dump()
 
     # check for shenanigans
-    check_reserved_action_tags(tags=action_request.tags)
+    check_reserved_action_tags(tags=request_data.get("_tags"))
 
-    api_key_id = api_key.get("id")
-    action_request.tags["action_name"] = config.ACTION_NAME
-    action_request.tags["api_key_id"] = api_key_id
-    action_request.tags["request_id"] = request_id
+    request_data["_tags"]["api_key_id"] = api_key.get("id")
+    request_data["_tags"]["request_id"] = request_id
+    request_data["_tags"]["state"] = "pending"
+    request_data["_tags"] = dict(sorted(request_data["_tags"].items()))
 
-    logger.info(f"status=called action_name={config.ACTION_NAME} api_key_id={api_key_id}")
-    action_function = getattr(action_functions, config.ACTION_NAME)
-    action_response = await foreground_action_caller(action_function, **action_request.model_dump())
+    logger.info(f"Action.{ACTION_NAME} " + dict_as_string(data=request_data["_tags"]))
+    action_function = getattr(action_functions, ACTION_NAME)
+    action_response = await foreground_action_caller(action_function, **request_data)
 
     if not action_response:
         return action_models.ActionResponse(
-            tags=action_request.tags,
-            error_messages=["No result received from foreground_action_call()"],
+            error_messages=["No result received from foreground_action_caller()"],
+            _tags=request_data["_tags"],
         )
 
-    call_id = action_response.tags.get("call_id")
-    logger.info(f"status=complete action_name={config.ACTION_NAME} api_key_id={api_key_id}, call_id={call_id}")
+    # sanity check and log
+    assert request_id == action_response._tags.get("request_id")
+    logger.info(f"Action.{ACTION_NAME} " + dict_as_string(data=action_response._tags))
 
-    return action_response
+    return action_response.model_dump()  # NB: because _tags

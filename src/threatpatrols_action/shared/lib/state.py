@@ -165,7 +165,7 @@ class StateHandlerFilesystem:
 
 
 def get_state_handler(
-    storage: str,
+    storage: str,  # TODO: convert to "type" and use "params" for filesystem
     state_ttl_seconds: int = DEFAULT_STATE_TTL_SECONDS,
     state_filesystem_max_wait_seconds: int = DEFAULT_STATE_FILESYSTEM_MAX_WAIT_SECONDS,
     state_filesystem_sleep_wait_seconds: float = DEFAULT_STATE_FILESYSTEM_SLEEP_WAIT_SECONDS,

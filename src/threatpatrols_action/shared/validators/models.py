@@ -21,9 +21,6 @@ def action_model_validator(action_models: object):
             raise ThreatPatrolsException(f"Action model {action!r} parent is not BaseModel type.")
 
         try:
-            keys = list(model.model_fields.keys())
-        except:
-            raise ThreatPatrolsException(f"Unable to get keys from {action!r} Action model.")
-
-        if "tags" not in keys:
-            raise ThreatPatrolsException(f"Action model {action!r} does not contain 'tags' attribute.")
+            _ = model._tags
+        except AttributeError:
+            raise ThreatPatrolsException(f"Action model {action!r} does not contain '_tags' attribute.")

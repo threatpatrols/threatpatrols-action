@@ -7,6 +7,8 @@ from tempfile import gettempdir
 from ... import config
 from ...exceptions import ThreatPatrolsException
 
+DEFAULT_EXEC_TIMEOUT_SECONDS = 30.0
+
 logger = logging.getLogger(config.LOGGER_NAME)
 
 
@@ -18,6 +20,7 @@ class ExecuteCommand:
     env: dict | None = None
     runas: str | None = None
     cwd: str | None = None
+    timeout: float = DEFAULT_EXEC_TIMEOUT_SECONDS
 
 
 @dataclass
@@ -28,39 +31,40 @@ class ExecuteCommandReturn:
     returncode: int | None = None
 
 
-def execute_command(task: ExecuteCommand) -> ExecuteCommandReturn:
+def execute_command(command: ExecuteCommand) -> ExecuteCommandReturn:
 
     logger.info(
-        f"{task.command=} "
-        f"args=<len:{len(task.args) if task.args else '0'}> "
-        f"env=<len:{len(task.env) if task.env else '0'}>, "
-        f"{task.runas=}, {task.cwd=}"
+        f"{command.command=} "
+        f"args=<len:{len(command.args) if command.args else '0'}> "
+        f"env=<len:{len(command.env) if command.env else '0'}>, "
+        f"{command.runas=}, {command.cwd=}"
     )
-    logger.debug(f"{task.command=} {task.args=}> {task.env=}> {task.runas=}, {task.cwd=}")
+    logger.debug(f"{command.command=} {command.args=} {command.env=} {command.runas=} {command.cwd=}")
 
-    if not task.cwd and task.runas and (Path("/home") / task.runas).exists():
-        task.cwd = f"/home/{task.runas}"
+    if not command.cwd and command.runas and (Path("/home") / command.runas).is_dir():
+        command.cwd = f"/home/{command.runas}"
 
-    if not task.cwd:
-        task.cwd = gettempdir()
+    if not command.cwd:
+        command.cwd = gettempdir()
 
-    if task.args:
-        task.args = [task.command] + task.args
+    if command.args:
+        command.args = [command.command] + command.args
     else:
-        task.args = [task.command]
+        command.args = [command.command]
 
-    if task.runas:
-        task.args = ["sudo", "-u", task.runas] + task.args
+    if command.runas:
+        command.args = ["sudo", "-u", command.runas] + command.args
 
     try:
         proc = subprocess.run(
-            task.args,
+            command.args,
             shell=False,
             check=False,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            cwd=task.cwd,
-            env=task.env,
+            cwd=command.cwd,
+            env=command.env,
+            timeout=command.timeout,
         )
     except Exception as e:
         raise ThreatPatrolsException(e)

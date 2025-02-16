@@ -45,6 +45,8 @@ def validate_api_token():
 
 
 def check_reserved_action_tags(tags):
+    if not tags:
+        return
     reserved_tag_keys = ["action_name", "api_key_id", "request_id", "task_id", "call_id", "call_timestamp"]
     for tag in tags.keys():
         if tag in reserved_tag_keys:

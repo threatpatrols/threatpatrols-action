@@ -21,7 +21,7 @@ def get_swagger_docs_html(doc_expansion: str = "list") -> str:
             "defaultModelsExpandDepth": -1,  # prevent the model Schema table from rendering
             "displayOperationId": False,
             "displayRequestDuration": True,
-            "tryItOutEnabled": True,
+            "tryItOutEnabled": False,  # False == user must press the "Try it out" button to try-it-out
             "requestSnippets": True,
             "tagsSorter": None,
             "operationsSorter": "method",

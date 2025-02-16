@@ -78,16 +78,16 @@ async def action_tasks_post(
     assert request_id is not None
 
     # check for shenanigans
-    check_reserved_action_tags(tags=action_request.tags)
+    check_reserved_action_tags(tags=action_request._tags)
 
     api_key_id = api_key.get("id")
-    action_request.tags["action_name"] = action_name = config.ACTION_NAME
-    action_request.tags["api_key_id"] = api_key_id
-    action_request.tags["request_id"] = request_id
-    action_request.tags["task_id"] = task_id = str(HLID())
+    action_request._tags["action_name"] = action_name = config.ACTION_NAME
+    action_request._tags["api_key_id"] = api_key_id
+    action_request._tags["request_id"] = request_id
+    action_request._tags["task_id"] = task_id = str(HLID())
 
     logger.info(f"action_name={action_name} api_key_id={api_key_id} task_id={task_id}")
-    task_response = TaskResponse(task_id=task_id, state=TaskState.PENDING, tags=action_request.tags)
+    task_response = TaskResponse(task_id=task_id, state=TaskState.PENDING, _tags=action_request._tags)
 
     state_key = "tasks/" + task_id.split("-")[0] + "/" + task_id
     await state_handler.save_state(key=state_key, data=task_response)
