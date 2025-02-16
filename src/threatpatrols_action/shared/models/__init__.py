@@ -12,7 +12,7 @@ class PrivateHandleBaseModel(BaseModel):
     def model_post_init(self, *_, **__) -> None:
         if not self._tags:
             self._tags = {}
-        if not self.model_config or "extra" not in self.model_config or self.model_config.get("extra") != "allow":
+        if (not self.model_config) or ("extra" not in self.model_config) or (self.model_config.get("extra") != "allow"):
             raise ValidationError("Model.model_config['extra'] must == allow")
 
     def model_dump(self, *args, **kwargs):

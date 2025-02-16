@@ -7,7 +7,7 @@ from ... import action_functions, action_models, config
 from ...exceptions import ThreatPatrolsApiException, ThreatPatrolsException
 from ...shared.lib.action_caller import foreground_action_caller
 from ...shared.lib.state import get_state_handler
-from ...shared.lib.strings import dict_as_string
+from ...shared.lib.strings import flatten_dict_as_string
 from ..controllers import check_reserved_action_tags, validate_bearer_token
 
 ACTION_NAME = config.ACTION_NAME
@@ -35,7 +35,9 @@ async def action_calls_get_list(
 
     results = []
     for item in await state_handler.find_states(key="calls", extension="out"):
-        results.append(action_models.ActionListItemResponse(**item))
+        model_keys = list(action_models.ActionListItemResponse.model_fields.keys()) + ["_tags"]
+        stripped_item = {key: item[key] for key in model_keys}  # implies no ActionListItemResponse validation
+        results.append(stripped_item)
 
     return results
 
@@ -62,7 +64,7 @@ async def action_calls_get_item(
         logger.error(detail, exc_info=e)
         raise ThreatPatrolsApiException(detail=detail, user_detail=detail + ", see logs for detail.", status_code=404)
 
-    return action_models.ActionResponse(**call_data)
+    return action_models.ActionResponse(**call_data).model_dump()  # NB: because _tags
 
 
 @router.post(
@@ -78,7 +80,7 @@ async def action_calls_post(
     assert api_key is not None and len(api_key) > 0
     assert request_id is not None and len(request_id) > 0
 
-    # provides access _tags private attribute
+    # makes access to private attribute keys possible
     request_data = action_request.model_dump()
 
     # check for shenanigans
@@ -89,7 +91,7 @@ async def action_calls_post(
     request_data["_tags"]["state"] = "pending"
     request_data["_tags"] = dict(sorted(request_data["_tags"].items()))
 
-    logger.info(f"Action.{ACTION_NAME} " + dict_as_string(data=request_data["_tags"]))
+    logger.info(f"Action.{ACTION_NAME} " + flatten_dict_as_string(data=request_data["_tags"]))
     action_function = getattr(action_functions, ACTION_NAME)
     action_response = await foreground_action_caller(action_function, **request_data)
 
@@ -101,6 +103,6 @@ async def action_calls_post(
 
     # sanity check and log
     assert request_id == action_response._tags.get("request_id")
-    logger.info(f"Action.{ACTION_NAME} " + dict_as_string(data=action_response._tags))
+    logger.info(f"Action.{ACTION_NAME} " + flatten_dict_as_string(data=action_response._tags))
 
-    return action_response.model_dump()  # NB: because _tags
+    return action_response.model_dump()  # NB: required because private attribute keys
