@@ -17,3 +17,7 @@ per-file-ignores =
 
     # Module imported but unused (F401) - https://www.flake8rules.com/rules/F401.html
     tests/**.py: F401
+
+    # module imported but unused (F401) - https://www.flake8rules.com/rules/F401.html
+    # module level import not at top of file (E402) - https://www.flake8rules.com/rules/E402.html
+    src/threatpatrols_action/shared/models/__init__.py: F401, E402

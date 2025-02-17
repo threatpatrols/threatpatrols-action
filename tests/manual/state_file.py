@@ -6,12 +6,14 @@ time to try and create race conditions.
 import asyncio
 import os
 
-from threatpatrols_action.shared.lib.hlid import hlid
+from hlid import hlid
+
 from threatpatrols_action.shared.lib.state import get_state_handler
 
 hlid = str(hlid())
 key = "tests/" + hlid.split("-")[0] + "/" + hlid
-state_handler = get_state_handler(storage="filesystem")
+
+state_handler = get_state_handler(method="filesystem", state_ttl_seconds=300)
 
 writelock_file = state_handler.key_file(key=key, extension="writelock")
 if writelock_file.exists():

@@ -39,8 +39,8 @@ async def foreground_action_caller(action_function: Callable, *_, **kwargs):
     validate_action_tags(tags=kwargs["_tags"])
 
     state_handler = get_state_handler(
-        storage=config.STATE__TYPE,
-        state_filesystem_root_path=config.STATE__PARAMS.get("root_path"),
+        method=config.STATE__METHOD,
+        method_params=config.STATE__PARAMS,
         state_ttl_seconds=config.STATE__CALLS__TTL_SECONDS,
     )
 
@@ -82,9 +82,9 @@ async def background_action_caller(action_function: Callable, *_, task_id: str, 
     validate_action_tags(tags=tags)
 
     state_handler = get_state_handler(
-        storage=config.STATE__TYPE,
+        method=config.STATE__METHOD,
+        method_params=config.STATE__PARAMS,
         state_ttl_seconds=config.STATE__TASKS__TTL_SECONDS,
-        state_filesystem_root_path=config.STATE__PARAMS.get("root_path"),
     )
 
     state_key = "tasks/" + task_id.split("-")[0] + "/" + task_id

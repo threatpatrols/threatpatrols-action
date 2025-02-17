@@ -5,7 +5,7 @@ import json
 import os
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 from uuid import uuid4
 
 import aiofiles
@@ -14,29 +14,28 @@ from hlid import HLID
 from ...exceptions import ThreatPatrolsException
 from .jsonable import jsonable_encoder
 
-DEFAULT_STATE_TTL_SECONDS = 3600 * 8
-
-DEFAULT_STATE_FILESYSTEM_ROOT_PATH = "/tmp/tpas"
+DEFAULT_STATE_FILESYSTEM_TTL_SECONDS = 3600 * 8
 DEFAULT_STATE_FILESYSTEM_MAX_WAIT_SECONDS = 30
 DEFAULT_STATE_FILESYSTEM_SLEEP_WAIT_SECONDS = 0.5
 DEFAULT_STATE_FILESYSTEM_MAX_RETRIES = 8
+DEFAULT_STATE_FILESYSTEM_ROOT_PATH = "/tmp/tpas"
 
 
 class StateHandlerFilesystem:
 
-    root_path: Path
     state_ttl_seconds: int
     max_wait_seconds: int
     sleep_wait_seconds: float
     max_retries: int = 8
+    root_path: Path
 
     def __init__(
         self,
-        state_ttl_seconds: int,
-        max_wait_seconds: int,
-        sleep_wait_seconds: float,
-        max_retries: int,
-        root_path: Path,
+        state_ttl_seconds: int = DEFAULT_STATE_FILESYSTEM_TTL_SECONDS,
+        max_wait_seconds: int = DEFAULT_STATE_FILESYSTEM_MAX_WAIT_SECONDS,
+        sleep_wait_seconds: float = DEFAULT_STATE_FILESYSTEM_SLEEP_WAIT_SECONDS,
+        max_retries: int = DEFAULT_STATE_FILESYSTEM_MAX_RETRIES,
+        root_path: Path = DEFAULT_STATE_FILESYSTEM_ROOT_PATH,
     ):
         self.state_ttl_seconds = state_ttl_seconds
         self.max_wait_seconds = max_wait_seconds
@@ -165,20 +164,17 @@ class StateHandlerFilesystem:
 
 
 def get_state_handler(
-    storage: str,  # TODO: convert to "type" and use "params" for filesystem
-    state_ttl_seconds: int = DEFAULT_STATE_TTL_SECONDS,
-    state_filesystem_max_wait_seconds: int = DEFAULT_STATE_FILESYSTEM_MAX_WAIT_SECONDS,
-    state_filesystem_sleep_wait_seconds: float = DEFAULT_STATE_FILESYSTEM_SLEEP_WAIT_SECONDS,
-    state_filesystem_max_retries: int = DEFAULT_STATE_FILESYSTEM_MAX_RETRIES,
-    state_filesystem_root_path: str = DEFAULT_STATE_FILESYSTEM_ROOT_PATH,
+    method: str,
+    method_params: Optional[dict[str, str]] = None,
+    state_ttl_seconds: Optional[int] = None,
 ) -> StateHandlerFilesystem:
-    if storage == "filesystem":
-        return StateHandlerFilesystem(
-            state_ttl_seconds=state_ttl_seconds,
-            max_wait_seconds=state_filesystem_max_wait_seconds,
-            sleep_wait_seconds=state_filesystem_sleep_wait_seconds,
-            max_retries=state_filesystem_max_retries,
-            root_path=Path(state_filesystem_root_path),
-        )
 
-    raise ThreatPatrolsException("StateHandler only supports filesystem at this time.")
+    if not method_params:
+        method_params = {}
+
+    if method == "filesystem":
+        return StateHandlerFilesystem(**{**method_params, **{"state_ttl_seconds": state_ttl_seconds}})
+    # elif method == "redis":
+    #     return StateHandlerRedis(**{**method_params, **{"state_ttl_seconds": state_ttl_seconds}})
+
+    raise ThreatPatrolsException("StateHandler only supports 'filesystem' method at this time.")

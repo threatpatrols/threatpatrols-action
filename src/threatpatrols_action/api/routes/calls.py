@@ -15,9 +15,9 @@ ACTION_NAME = config.ACTION_NAME
 router = APIRouter()
 logger = logging.getLogger(config.LOGGER_NAME)
 state_handler = get_state_handler(
-    storage=config.STATE__TYPE,
+    method=config.STATE__METHOD,
+    method_params=config.STATE__PARAMS,
     state_ttl_seconds=config.STATE__CALLS__TTL_SECONDS,
-    state_filesystem_root_path=config.STATE__PARAMS.get("root_path"),
 )
 
 

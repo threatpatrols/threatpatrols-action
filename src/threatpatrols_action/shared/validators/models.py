@@ -14,7 +14,7 @@ def action_model_validator(action_models: object):
 
         try:
             model: BaseModel = getattr(action_models, str(action))
-        except:
+        except AttributeError:
             raise ThreatPatrolsException(f"Unable to load the {action!r} required model.")
 
         if not issubclass(model, BaseModel):

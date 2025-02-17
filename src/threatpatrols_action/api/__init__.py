@@ -69,7 +69,7 @@ def load_api_app(config, action: Callable):
     load_middlewares(app=app)
 
     if config.DEBUG:
-        add_static_route(app, request_path=f"/docs/static", files_directory="api/static")
+        add_static_route(app, request_path="/docs/static", files_directory="api/static")
         add_redirect_route(app, request_path="/", redirect_url="/docs", tags=["System"], summary="Redirect to docs.")
         app.add_api_route("/docs", get_swagger_docs_response, methods=["GET"], tags=["System"], include_in_schema=False)
 

@@ -6,7 +6,8 @@ from threatpatrols_action.shared.lib.state import get_state_handler
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_01():
-    state_handler = get_state_handler("filesystem")
+
+    state_handler = get_state_handler(method="filesystem", state_ttl_seconds=300)
 
     hlid_str = str(hlid())
     key = "tests/" + hlid_str.split("-")[0] + "/" + hlid_str

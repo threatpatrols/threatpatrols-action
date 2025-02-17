@@ -12,7 +12,7 @@ SWAGGER_UI_FAVICON_URL = config.SWAGGER_UI_FAVICON_URL
 
 def get_swagger_docs_html(doc_expansion: str = "list") -> str:
     swagger_ui_html = get_swagger_ui_html(
-        openapi_url=f"/openapi.json",
+        openapi_url="/openapi.json",
         title=SWAGGER_UI_PAGE_TITLE,
         swagger_js_url=SWAGGER_UI_JS_URL,
         swagger_css_url=SWAGGER_UI_CSS_URL,

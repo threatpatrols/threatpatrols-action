@@ -7,7 +7,7 @@ router = APIRouter()
 
 
 @router.get(
-    f"/health",
+    "/health",
     tags=["System"],
     summary="Get basic system-health and system-status data.",
 )

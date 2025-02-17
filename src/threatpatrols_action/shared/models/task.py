@@ -21,8 +21,9 @@ class TaskResponse(PrivateHandleBaseModel):
     task_id: str
     state: TaskState
 
-    # model_config = ConfigDict(
-    #     json_schema_extra={
-    #         "example": {"task_id": "12345678", "state": "pending", "tags": {"request_id": "ff0e4d8113924be6-TPX"}}
-    #     }
-    # )
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={
+            "example": {"task_id": "12345678", "state": "pending", "tags": {"request_id": "ff0e4d8113924be6-TPX"}}
+        },
+    )
