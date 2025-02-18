@@ -8,7 +8,7 @@ def action_model_validator(action_models: object):
     Checks to confirm the action models are roughly okay
     """
 
-    check_models = ("ActionRequest", "ActionResponse", "ActionListItemResponse")
+    check_models = ("ActionRequest", "ActionItem", "ActionListItem")
 
     for action in check_models:
 

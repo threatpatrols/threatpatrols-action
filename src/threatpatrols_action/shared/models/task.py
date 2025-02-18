@@ -1,8 +1,10 @@
+import json
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import ConfigDict
 
-from . import PrivateHandleBaseModel
+from . import TASK_ITEM_EXAMPLE, TASK_LIST_ITEM_EXAMPLE
+from .base import BaseModelPrivateHandler
 
 
 class TaskState(StrEnum):
@@ -12,18 +14,15 @@ class TaskState(StrEnum):
     FAILED = "failed"
 
 
-class TaskListItemResponse(BaseModel):
+class TaskItem(BaseModelPrivateHandler):
     task_id: str
     state: TaskState
 
+    model_config = ConfigDict(extra="allow", json_schema_extra={"example": json.loads(TASK_ITEM_EXAMPLE)})
 
-class TaskResponse(PrivateHandleBaseModel):
+
+class TaskListItem(BaseModelPrivateHandler):
     task_id: str
     state: TaskState
 
-    model_config = ConfigDict(
-        extra="allow",
-        json_schema_extra={
-            "example": {"task_id": "12345678", "state": "pending", "tags": {"request_id": "ff0e4d8113924be6-TPX"}}
-        },
-    )
+    model_config = ConfigDict(extra="allow", json_schema_extra={"example": json.loads(TASK_LIST_ITEM_EXAMPLE)})

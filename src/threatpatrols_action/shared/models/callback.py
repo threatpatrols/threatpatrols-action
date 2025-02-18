@@ -1,13 +1,10 @@
-from typing import Optional
-
-from . import PrivateHandleBaseModel
+from . import BaseModelPrivateHandler
 
 
-class Callback(PrivateHandleBaseModel):
+class Callback(BaseModelPrivateHandler):
     action_name: str
     action_call_id: str
     action_task_id: str
-    _tags: Optional[dict[str, str]] = None  # TODO: replace via PrivateHandleBaseModel
 
 
 class CallbackHttp(Callback):
@@ -15,6 +12,7 @@ class CallbackHttp(Callback):
     method: str
     data: str
     headers: dict
+    proxy: str
 
 
 class CallbackSmtp(Callback):

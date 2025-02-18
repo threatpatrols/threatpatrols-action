@@ -8,7 +8,7 @@ from starlette.responses import RedirectResponse
 from .. import action_functions, action_models
 from ..exceptions import generate_api_exception_response_handlers
 from ..shared.lib.logger_init import logger_get, logger_setlevel
-from ..shared.models import HealthResponse, TaskResponse, TaskState
+from ..shared.models import HealthResponse, TaskItem, TaskState
 from ..shared.validators.models import action_model_validator
 from .lib.openapi import custom_openapi
 from .lib.swagger import get_swagger_docs_response
@@ -16,7 +16,7 @@ from .middlewares import load_middlewares
 
 # from .routes import ActionRoutes  # noqa: F401
 
-action_models.TaskResponse = TaskResponse
+action_models.Task = TaskItem
 action_models.TaskState = TaskState
 action_models.HealthResponse = HealthResponse
 

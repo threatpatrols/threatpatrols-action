@@ -23,11 +23,11 @@ def background_task_observability(func: Callable) -> Callable:
         # working, then consider this function carefully.  Don't be in a rush to change the code in this function!
         #
 
-        task_id = kwargs.get("task_id")
-        if not task_id:
-            logger.error("Background tasks MUST provide 'task_id' value in kwargs.")
+        if not kwargs.get("_tags") or not kwargs.get("_tags").get("task_id"):
+            logger.error("Background tasks MUST provide '_tags.task_id' value in kwargs.")
             return
 
+        task_id = kwargs.get("_tags").get("task_id")
         logger.info(f"background_task [{task_id}] {task_name}() started.")
 
         try:
