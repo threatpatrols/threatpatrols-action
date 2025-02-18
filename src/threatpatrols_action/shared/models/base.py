@@ -15,15 +15,26 @@ class BaseModelPrivateHandler(BaseModel):
         if (not self.model_config) or ("extra" not in self.model_config) or (self.model_config.get("extra") != "allow"):
             raise ValidationError("Model.model_config['extra'] must == allow")
 
-    def model_dump(self, *args, **kwargs):
-        private_attr_data = {}
-        for private_attr in self.__private_attributes__.keys():
-            try:
-                private_data = getattr(self, private_attr)
-            except AttributeError:
-                private_data = None
-            if private_data and isinstance(private_data, dict):
-                private_attr_data[private_attr] = dict(sorted(private_data.items()))
-            elif private_data:
-                private_attr_data[private_attr] = private_data
-        return dict(sorted({**super().model_dump(*args, **kwargs), **private_attr_data}.items()))
+    def model_dump(self, *args, include_private=True, exclude_extra=True, **kwargs):
+
+        dump_data = super().model_dump(*args, **kwargs)  # NB: includes private
+        keys = set(list(dump_data.keys()) + list(self.model_fields.keys()) + list(self.__private_attributes__.keys()))
+
+        for key in keys:
+            key_is_extra = True if key not in self.model_fields.keys() else False
+            key_is_private = True if key.startswith("_") else False
+
+            if include_private is True and key_is_private is True:
+                if dump_data.get(key) is None and getattr(self, key) is not None:
+                    dump_data[key] = getattr(self, key)
+                    continue
+
+            if include_private is False and key_is_private is True:
+                del dump_data[key]
+
+            if exclude_extra is True and key_is_extra is True:
+                if key_is_private is True and include_private is True:
+                    continue
+                del dump_data[key]
+
+        return dict(sorted(dump_data.items()))

@@ -18,7 +18,6 @@ class UserAgent:
 
     def find(self, *matching_strings) -> str:
         for user_agent in self.user_agents:
-            print(f"{user_agent=}")
             match_count = 0
             for matching_string in matching_strings:
                 if matching_string in user_agent:

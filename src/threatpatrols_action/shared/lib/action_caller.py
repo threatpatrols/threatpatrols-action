@@ -24,12 +24,7 @@ async def foreground_action_caller(
     if not callable(action_function):
         raise ValueError("Action type not callable in foreground_action_caller()")
 
-    if not kwargs:
-        kwargs = {}
-    if "_tags" not in kwargs.keys():
-        kwargs["_tags"] = {}
-    tags = kwargs.get("_tags")
-    validate_action_tags(tags=tags)
+    validate_action_tags(tags=kwargs.get("_tags"))
 
     if call_id:
         try:
@@ -72,8 +67,7 @@ async def foreground_action_caller(
     if not isinstance(result, action_models.ActionItem):
         raise ThreatPatrolsException("Action response not a ActionItem-type")
 
-    result_tags = result.model_dump().get("_tags", {})  # funky approach required to get this private attribute
-    result._tags = {**result_tags, **kwargs.get("_tags")}  # make sure the action is not able to overwrite tags
+    result._tags = {**result._tags, **kwargs.get("_tags")}  # make sure the results are not able to overwrite request
     result._tags["action_state"] = "complete"
 
     await state_handler.save_state(key=state_key, data=result, extension="out")
@@ -88,10 +82,6 @@ async def background_action_caller(action_function: Callable, *_, task_id: str =
     if not callable(action_function):
         raise ValueError("Action type not callable in background_action_caller()")
 
-    if not kwargs:
-        kwargs = {}
-    if "_tags" not in kwargs.keys():
-        kwargs["_tags"] = {}
     validate_action_tags(tags=kwargs["_tags"])
 
     if task_id:

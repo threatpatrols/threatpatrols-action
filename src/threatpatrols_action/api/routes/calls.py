@@ -37,9 +37,7 @@ async def action_calls_get_list(
 
     results = []
     for item in await state_handler.find_states(key="calls", extension="out"):
-        model_keys = list(action_models.ActionListItem.model_fields.keys()) + ["_tags"]
-        stripped_item = {key: item[key] for key in model_keys}  # implies no ActionListItem validation
-        results.append(stripped_item)
+        results.append(item)
 
     return results
 

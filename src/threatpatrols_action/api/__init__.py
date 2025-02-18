@@ -14,8 +14,6 @@ from .lib.openapi import custom_openapi
 from .lib.swagger import get_swagger_docs_response
 from .middlewares import load_middlewares
 
-# from .routes import ActionRoutes  # noqa: F401
-
 action_models.Task = TaskItem
 action_models.TaskState = TaskState
 action_models.HealthResponse = HealthResponse
