@@ -41,7 +41,7 @@ def load_api_app(config, action: Callable):
     logger.info(f"{config.TITLE} v{config.VERSION}")
     logger.info(f"CONFIG_FILE = {str(config.CONFIG_FILE)}")
 
-    # Assign the main action
+    # Assign the primary action_function
     setattr(action_functions, config.ACTION_NAME, action)
 
     # Establish the FastAPI app instance

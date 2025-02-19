@@ -33,7 +33,7 @@ async def foreground_action_caller(
             raise ValueError("Invalid call_id supplied in foreground_action_caller()")
     else:
         call_id = str(HLID())
-        logger.info(f"Background action call_id created {call_id=}")
+        logger.info(f"Action {call_id=} created.")
 
     kwargs["_tags"]["action_name"] = config.ACTION_NAME
     kwargs["_tags"]["action_state"] = "pending"
