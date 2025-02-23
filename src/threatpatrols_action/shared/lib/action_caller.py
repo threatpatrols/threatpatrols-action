@@ -9,6 +9,7 @@ from ... import action_models, config
 from ...exceptions import ThreatPatrolsException
 from ...shared.lib.state import get_state_handler
 from ...shared.models import TaskItem, TaskState
+from ...shared.validators.hlids import validate_hlid
 from ...shared.validators.tags import validate_action_tags
 from ..lib.background_task import background_task_observability
 
@@ -26,14 +27,10 @@ async def foreground_action_caller(
 
     validate_action_tags(tags=kwargs.get("_tags"))
 
-    if call_id:
-        try:
-            assert HLID(call_id).age > 0
-        except Exception:
-            raise ValueError("Invalid call_id supplied in foreground_action_caller()")
-    else:
+    if not call_id:
         call_id = str(HLID())
-        logger.info(f"Action {call_id=} created.")
+    else:
+        validate_hlid(call_id, location_hint="foreground_action_caller")
 
     kwargs["_tags"]["action_name"] = config.ACTION_NAME
     kwargs["_tags"]["action_state"] = "pending"
@@ -85,10 +82,7 @@ async def background_action_caller(action_function: Callable, *_, task_id: str =
     validate_action_tags(tags=kwargs["_tags"])
 
     if task_id:
-        try:
-            assert HLID(task_id).age > 0
-        except Exception:
-            raise ValueError("Invalid task_id supplied")
+        validate_hlid(task_id, location_hint="background_action_caller")
     else:
         task_id = str(HLID())
         logger.info(f"Background action task_id created {task_id=}")

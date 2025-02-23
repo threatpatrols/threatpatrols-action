@@ -22,11 +22,12 @@ class CustomOpenApiSchema:
             return self.app.openapi_schema
 
         openapi_schema = get_openapi(
-            title=self.app.title,
-            version=self.app.version,
+            title=config.TITLE,
+            version=f"v{config.VERSION} | TPAS:v{config.TPAS_VERSION}",
             summary=self.app.summary,
-            description='More awesome Threat Patrols Actions at <strong><a href="https://github.com/threatpatrols"'
-            ' rel="noreferrer noopener">github.com/threatpatrols</a></strong>',
+            description="Discover more awesome Threat Patrols Actions at <strong> "
+            '<a href="https://github.com/threatpatrols" rel="noreferrer noopener">github.com/threatpatrols</a>'
+            "</strong>",
             routes=self.app.routes,
         )
 

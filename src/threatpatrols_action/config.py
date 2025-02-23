@@ -26,6 +26,8 @@ class DynaconfSettings(Dynaconf):
     VERSION: str
     ACTION_NAME: str
 
+    TPAS_VERSION: str
+
     API__PORT: int = 11235
     STATE__TYPE: str = "filesystem"
     STATE__PARAMS: dict = {"root_path": "/tmp/tpas"}
@@ -53,7 +55,8 @@ class DynaconfSettings(Dynaconf):
 
     def overrides(self):
         self.TITLE = __title__
-        self.VERSION = __version__
+        self.VERSION = "dev"
+        self.TPAS_VERSION = __version__
 
         # https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js
         # https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css

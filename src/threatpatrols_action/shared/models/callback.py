@@ -15,6 +15,12 @@ class CallbackHttp(Callback):
     proxy: str
 
 
+class CallbackS3(Callback):
+    bucket: str
+    object_key: str
+    object_data_b64: str
+
+
 class CallbackSmtp(Callback):
     email_to: str
     email_from: str

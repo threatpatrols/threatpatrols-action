@@ -3,7 +3,7 @@ from copy import copy
 from fastapi import Header, HTTPException, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from .. import config
+from threatpatrols_action import config
 
 
 def get_request_id_header(request_id: str = Header(None, include_in_schema=False)):
