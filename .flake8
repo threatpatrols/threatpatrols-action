@@ -24,3 +24,6 @@ per-file-ignores =
     # F401 module imported but unused - https://www.flake8rules.com/rules/F401.html
     # E402 module level import not at top of file - https://www.flake8rules.com/rules/E402.html
     src/threatpatrols_action/shared/models/__init__.py: F401, E402
+
+    # W291 trailing whitespace
+    src/threatpatrols_action/cli/lib/args.py: W291
