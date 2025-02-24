@@ -7,16 +7,27 @@ from pydantic_core import PydanticUndefined
 from ...config import config
 from ...shared.lib.casts import annotation_to_type_name
 from ...shared.lib.color import ansicode
-from .. import tpas_commands, tpas_non_action_commands
+from .. import tpas_action_commands, tpas_commands
+
+EPILOG = f"""
+Some TPAS (Threat Patrols Actions) commands require additional positional arguments:
+  - call: invokes the {config.ACTION_NAME} action directly using the named tpas-call action args, no additional args.
+  - call-get/task-get: returns call/task data; must append a call_id/task_id as an additional arg.
+  - call-list/task-list: returns a list of non-expired item-summaries, use 'expired' or 'expired-purge' args. 
+
+TPAS callbacks must be defined in your config.yml before they can be referenced in --tpas-callbacks.
+
+Docs: https://docs.threatpatrols.com/tpas
+"""
 
 
 def parse_action_args(fields: dict[str, Any] = None) -> dict:
     parser = argparse.ArgumentParser(
-        prog=config.TITLE,
-        description=f"{config.TITLE}: v{config.VERSION} | TPAS:v{config.TPAS_VERSION}\n",
+        prog=f"tpas-{config.ACTION_NAME}",
+        description=f"{config.TITLE}: v{config.VERSION} | Threat Patrols Actions: v{config.TPAS_VERSION}\n",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         add_help=False,
-        epilog="Docs: https://docs.threatpatrols.com/tpas",
+        epilog=EPILOG,
     )
 
     # tpas args
@@ -59,8 +70,8 @@ def parse_action_args(fields: dict[str, Any] = None) -> dict:
 
 def parse_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
 
-    action_args = parser.add_argument_group(f"{config.ACTION_NAME} args")
-    is_require_override = any(map(lambda v: v in tpas_non_action_commands, sys.argv))  # sneaky punishment
+    action_args = parser.add_argument_group(f"tpas-call {config.ACTION_NAME} args")
+    is_require_override = not any(map(lambda v: v in tpas_action_commands, sys.argv))  # punishment
     action_args.add_argument(
         "--tpas-require-override", required=False, help=argparse.SUPPRESS, default=is_require_override
     )
@@ -78,7 +89,7 @@ def parse_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
         arg_type_name = annotation_to_type_name(annotation=field_info.annotation)
 
         if arg_type_name not in ("str", "bool", "list", "dict", "int", "float"):
-            raise TypeError(f"Field {field!r} with type-{arg_type_name!r} is not a supported type.")
+            raise ValueError(f"Field {field!r} with type-{arg_type_name!r} is not a supported type.")
 
         arg_help = f"{field.replace('_', ' ').title()} {arg_type_name}-type value"
 
@@ -91,11 +102,13 @@ def parse_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
             parser_argument_kwargs["nargs"] = "+"
         elif arg_type_name == "dict":
             parser_argument_kwargs["nargs"] = "+"
-            arg_help += ", provide in '<key>:<value>' format"
+            arg_help += ", items provided in '<key>:<value>' format"
         arg_help += "."
 
         if field_info.is_required():
-            arg_help += f" {ansicode.WARNING}[required; tpas-command=call]{ansicode.ENDC}"
+            arg_help += (
+                f" {ansicode.WARNING}[required]{ansicode.ENDC} " f"{ansicode.OKBLUE}[tpas-command: call]{ansicode.ENDC}"
+            )
 
         parser_argument_kwargs["help"] = arg_help
 
@@ -104,27 +117,38 @@ def parse_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
 
 def parse_tpas_args(parser: argparse.ArgumentParser):
 
-    tpas_args = parser.add_argument_group("tpas-action")
+    tpas_command_args = parser.add_argument_group("tpas-command")
 
-    tpas_args.add_argument(
-        "--tpas-command",
-        required=True,
-        metavar="<str>",
+    tpas_command_args.add_argument(
+        "tpas_command",
+        metavar="<cmd> [<args> ...]",
         nargs="+",
-        help="Action command {} {} {} {}[required]{} \nUse call_id/task_id as second arg in *-get commands.".format(
-            "{", ",".join(tpas_commands), "}", ansicode.WARNING, ansicode.ENDC
+        help="TPAS command {} {} {} {}[required]{} {}[see below]{}".format(
+            "{", ", ".join(tpas_commands), "}", ansicode.WARNING, ansicode.ENDC, ansicode.OKBLUE, ansicode.ENDC
         ),
     )
 
-    tpas_args.add_argument(
+    # ===
+
+    tpas_action_args = parser.add_argument_group("tpas-call")
+
+    tpas_action_args.add_argument(
         "--tpas-tags",
         required=False,
         metavar="<dict>",
-        nargs="+",
-        help="Additional tags for this action, provide in '<key>:<value>' format.",
+        nargs="*",
+        help="Additional tags for this action, items provided in '<key>:<value>' format.",
     )
 
-    tpas_args.add_argument(
+    tpas_action_args.add_argument(
+        "--tpas-callbacks",
+        required=False,
+        metavar="<dict>",
+        nargs="*",
+        help="Callbacks for this action, items provided in '<callback-name>:<config-name>' format.",
+    )
+
+    tpas_action_args.add_argument(
         "--tpas-action",
         required=False,
         metavar="<str>",

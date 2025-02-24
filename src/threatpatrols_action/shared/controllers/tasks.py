@@ -23,10 +23,20 @@ async def tpas_task_get(task_id: str) -> TaskItem:
     return TaskItem(**task_data)
 
 
-async def tpas_task_list() -> list[TaskListItem]:
+async def tpas_task_list(filter_expired_ttl: bool = False, purge_expired_ttl: bool = False) -> list[TaskListItem]:
 
     tasks = []
-    for item in await state_handler.find_states(key="tasks"):
-        tasks.append(TaskListItem(**item))
+    if filter_expired_ttl or purge_expired_ttl:
+        for item in await state_handler.find_states(key="tasks", filter_expired_ttl=True):
+            tasks.append(TaskListItem(**item))
+        if purge_expired_ttl:
+            logger.warning(f"Purging {len(tasks)} expired_ttl tasks from state storage.")
+            for task in tasks:
+                state_key = "tasks/" + task.task_id.split("-")[0] + "/" + task.task_id
+                await state_handler.remove_state(key=state_key)
+            tasks = []
+    else:
+        for item in await state_handler.find_states(key="tasks", filter_expired_ttl=False):
+            tasks.append(TaskListItem(**item))
 
     return tasks

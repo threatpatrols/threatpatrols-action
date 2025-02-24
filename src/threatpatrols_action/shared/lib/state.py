@@ -52,23 +52,14 @@ class StateHandlerFilesystem:
             full_path.parent.mkdir(parents=True, exist_ok=True)
         return Path(f"{str(full_path)}.{extension}")
 
-    async def remove_expired_states(
-        self, key: str, extension: str = "data", filter_match: list[str] = None, filter_exclude: list[str] = None
-    ):
-        root_path = self.key_file(key=f"{key}/faux", extension="faux").parent
-        for path in sorted(root_path.rglob(f"*.{extension}.metadata"), reverse=True):
-            path_hlid = path.name.split(".")[0]
-            if HLID(path_hlid).age > self.state_ttl_seconds:
-                os.unlink(path)
-
-    async def find_states(
-        self, key: str, extension: str = "data", filter_match: list[str] = None, filter_exclude: list[str] = None
-    ):
+    async def find_states(self, key: str, extension: str = "data", filter_expired_ttl: bool = False):
         results = []
         root_path = self.key_file(key=f"{key}/faux", extension="faux").parent
         for path in sorted(root_path.rglob(f"*.{extension}.metadata"), reverse=True):
             path_hlid = path.name.split(".")[0]
-            if HLID(path_hlid).age < self.state_ttl_seconds:
+            if (filter_expired_ttl is False and HLID(path_hlid).age < self.state_ttl_seconds) or (
+                (filter_expired_ttl is True and HLID(path_hlid).age > self.state_ttl_seconds)
+            ):
                 state_key = f"{key}/" + path_hlid.split("-")[0] + "/" + path_hlid
                 state = await self.load_state(key=state_key, extension=extension)
                 results.append(state)
@@ -111,6 +102,29 @@ class StateHandlerFilesystem:
             return await self.load_state(key=key, _retry_count=_retry_count + 1)
 
         return json.loads(state_data_json)
+
+    async def remove_state(self, key: str, extension: str = "data") -> Path:
+        state_data_file = self.key_file(key=key, extension=extension, mkdir_missing=True)
+        state_metadata_file = self.key_file(key=key, extension=f"{extension}.metadata")
+
+        state_writelock_file = await self.writelock_state(key=key)
+
+        try:
+            os.unlink(state_data_file)
+        except FileNotFoundError:
+            pass
+
+        try:
+            os.unlink(state_metadata_file)
+        except FileNotFoundError:
+            pass
+
+        try:
+            os.unlink(state_writelock_file)
+        except FileNotFoundError:
+            pass
+
+        return state_data_file
 
     async def save_state(self, key: str, data: Any, extension="data") -> Path:
         state_data_file = self.key_file(key=key, extension=extension, mkdir_missing=True)

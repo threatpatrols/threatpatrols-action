@@ -53,10 +53,27 @@ async def tpas_call_get(call_id: str) -> action_models.ActionItem:
     return action_models.ActionItem(**call_data).model_dump()
 
 
-async def tpas_call_list() -> list[action_models.ActionListItem]:
+async def tpas_call_list(
+    filter_expired_ttl: bool = False, purge_expired_ttl: bool = False
+) -> list[action_models.ActionListItem]:
 
     calls = []
-    for item in await state_handler.find_states(key="calls", extension="out"):
-        calls.append(action_models.ActionListItem(**item).model_dump())
+
+    if filter_expired_ttl or purge_expired_ttl:
+        for item in await state_handler.find_states(key="calls", extension="out", filter_expired_ttl=True):
+            calls.append(action_models.ActionListItem(**item).model_dump())
+        if purge_expired_ttl:
+            logger.warning(f"Purging {len(calls)} expired_ttl calls from state storage.")
+            for call in calls:
+                call_id = call.get("_tags", {}).get("call_id")
+                if not call_id:
+                    continue
+                state_key = "calls/" + call_id.split("-")[0] + "/" + call_id
+                await state_handler.remove_state(key=state_key, extension="in")
+                await state_handler.remove_state(key=state_key, extension="out")
+            calls = []
+    else:
+        for item in await state_handler.find_states(key="calls", extension="out", filter_expired_ttl=False):
+            calls.append(action_models.ActionListItem(**item).model_dump())
 
     return calls

@@ -1,14 +1,11 @@
+import json
+
 from pydantic import BaseModel, ConfigDict
+
+from . import HEALTH_ITEM_EXAMPLE
 
 
 class HealthResponse(BaseModel):
-    status: str
-    memory_usage: float
-    cpu_usage: float
     background_tasks: int
 
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {"status": "healthy", "memory_usage": 44.2, "cpu_usage": 14.3, "background_tasks": 0}
-        }
-    )
+    model_config = ConfigDict(extra="allow", json_schema_extra={"example": json.loads(HEALTH_ITEM_EXAMPLE)})

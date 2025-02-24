@@ -27,6 +27,19 @@ TASK_ITEM_EXAMPLE = """
 }
 """
 
+HEALTH_ITEM_EXAMPLE = """
+{
+  "background_tasks": 0,
+  "cpu_usage_p": 7.2,
+  "machine": "x86_64",
+  "memory_usage_p": 46.1,
+  "nodename": "computer",
+  "release": "24.04",
+  "sysname": "Linux",
+  "vendor": "Ubuntu"
+}
+"""
+
 
 from .base import BaseModelPrivateHandler
 from .callback import Callback, CallbackHttp, CallbackSmtp

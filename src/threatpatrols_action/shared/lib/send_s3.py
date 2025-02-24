@@ -1,3 +1,4 @@
+import logging
 import os.path
 from pathlib import Path
 from typing import Any
@@ -8,22 +9,21 @@ from botocore.client import Config as BotoConfig
 from botocore.exceptions import BotoCoreError
 from botocore.session import get_session
 
-from .. import constants
-from ..exceptions import ThreatPatrolsRunnerException
+from ... import config
+from ...exceptions import ThreatPatrolsException
 from ..lib.hash import hash_of_file
-from ..lib.logger import logger_get
 
-logger = logger_get(constants.LOGGER_NAME)
+logger = logging.getLogger(config.LOGGER_NAME)
 
 
 def send_s3_boto3(file: Path, uri: str) -> tuple[dict[str, Any], Path]:
     logger.debug(f"send_s3_s3put(file={str(file)}, {uri=})")
 
     if not uri:
-        raise ThreatPatrolsRunnerException("Empty <uri> supplied, must provide a value in --send-s3")
+        raise ThreatPatrolsException("Empty <uri> supplied, must provide a value.")
 
     if not os.path.isfile(file):
-        raise ThreatPatrolsRunnerException("Unable to locate file to upload for --send-s3 S3 action.")
+        raise ThreatPatrolsException("Unable to locate file to upload for S3 action.")
 
     session = get_session()
 
@@ -31,8 +31,8 @@ def send_s3_boto3(file: Path, uri: str) -> tuple[dict[str, Any], Path]:
         # let boto3 do its thing to acquire appropriate credentials from file(s) or environment variable(s)
         credentials = session.get_credentials().get_frozen_credentials()
     except AttributeError:
-        _msg = "Unable to locate S3 credentials for --send-s3.  Use any credential method supported by boto3."
-        raise ThreatPatrolsRunnerException(_msg)
+        _msg = "Unable to locate S3 credentials.  Use any credential method supported by boto3."
+        raise ThreatPatrolsException(_msg)
 
     endpoint_url, bucket, key_prefix = _parse_uri(uri)
 
@@ -58,7 +58,7 @@ def send_s3_boto3(file: Path, uri: str) -> tuple[dict[str, Any], Path]:
                 ContentMD5=hash_of_file(file, hash_method="md5", base64_encoded=True),
             )
     except BotoCoreError as e:
-        raise ThreatPatrolsRunnerException(str(e))
+        raise ThreatPatrolsException(e)  # Crimes!
 
     return response, Path(object_key)
 
@@ -79,8 +79,8 @@ def _parse_uri(uri: str) -> tuple[str | None, str, str]:
         bucket = parsed.path.strip("/").split("/")[0]
         key_prefix = "/".join(parsed.path.strip("/").split("/")[1:])
     else:
-        raise ThreatPatrolsRunnerException(
-            "Uri supplied in --send-s3 does not start with a supported <provider>, must start with 's3://' for "
+        raise ThreatPatrolsException(
+            "S3 uri supplied does not start with a supported <provider>, must start with 's3://' for "
             "AWS, 'gs://' for GCP or 'http[s]://' for other S3 compatible endpoints.  See docs for detail."
         )
 

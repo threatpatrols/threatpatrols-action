@@ -28,20 +28,20 @@ class DynaconfSettings(Dynaconf):
 
     TPAS_VERSION: str
 
-    API__PORT: int = 11235
-    STATE__TYPE: str = "filesystem"
-    STATE__PARAMS: dict = {"root_path": "/tmp/tpas"}
-    STATE__CALLS__TTL_SECONDS: int = 3600 * 8
-    STATE__TASKS__TTL_SECONDS: int = 3600 * 8
+    API__PORT: int
+    STATE__TYPE: str
+    STATE__PARAMS: dict
+    STATE__CALLS__TTL_SECONDS: int
+    STATE__TASKS__TTL_SECONDS: int
 
-    USER_TAG_MAX_COUNT: int = 16
-    USER_TAG_MAX_KEY_LENGTH: int = 64
-    USER_TAG_MAX_VALUE_LENGTH: int = 256
+    USER_TAG_MAX_COUNT: int
+    USER_TAG_MAX_KEY_LENGTH: int
+    USER_TAG_MAX_VALUE_LENGTH: int
 
     SWAGGER_UI_JS_URL: str
     SWAGGER_UI_CSS_URL: str
     SWAGGER_UI_CSS_OVERRIDES_URL: str
-    SWAGGER_UI_FAVICON_URL: str = "https://www.threatpatrols.com/favicon.ico"
+    SWAGGER_UI_FAVICON_URL: str
 
     DEBUG: bool
     LOGGER_NAME: str
@@ -57,6 +57,10 @@ class DynaconfSettings(Dynaconf):
         self.TITLE = __title__
         self.VERSION = "dev"
         self.TPAS_VERSION = __version__
+
+        self.USER_TAG_MAX_COUNT = 16
+        self.USER_TAG_MAX_KEY_LENGTH = 64
+        self.USER_TAG_MAX_VALUE_LENGTH = 256
 
         # https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js
         # https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css
@@ -78,6 +82,12 @@ class DynaconfSettings(Dynaconf):
 
 setting_validators = [
     Validator("LOGGER_LEVEL", is_in=["debug", "info", "warning", "error", "critical"], default="info"),
+    Validator("SWAGGER_UI_FAVICON_URL", is_type_of=str, default="https://www.threatpatrols.com/favicon.ico"),
+    Validator("API__PORT", is_type_of=int, default=11235),
+    Validator("STATE__TYPE", is_type_of=str, default="filesystem"),
+    Validator("STATE__PARAMS", is_type_of=dict, default={"root_path": "/tmp/tpas"}),
+    Validator("STATE__CALLS__TTL_SECONDS", is_type_of=int, default=3600 * 2),
+    Validator("STATE__TASKS__TTL_SECONDS", is_type_of=int, default=3600 * 2),
 ]
 
 

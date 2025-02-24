@@ -2,9 +2,11 @@ import asyncio
 from logging import getLogger
 from typing import Optional
 
+from pydantic import ValidationError
 from rich import print_json
 
 from ... import config
+from ...exceptions import ThreatPatrolsException
 from ...shared.controllers.calls import tpas_call, tpas_call_get, tpas_call_list
 from ...shared.controllers.tasks import tpas_task_get, tpas_task_list
 from ...shared.lib.casts import list_to_dict
@@ -20,15 +22,27 @@ class CommandRouter:
     action_name: str
     tpas_command: str
     tpas_identifier: Optional[str] = None
+    tpas_list_modifier: Optional[str] = None
 
     def __init__(self, args: dict, action_name: str):
 
+        if not args.get("tpas_command") or not isinstance(args.get("tpas_command"), list):
+            raise ValueError("Invalid TPAS command.")
+
         self.tpas_command = args.get("tpas_command")[0]
-        if args.get("tpas_require_override") and len(args.get("tpas_command")) > 1:
+
+        # *-get
+        if self.tpas_command.endswith("-get") and len(args.get("tpas_command")) > 1:
             self.tpas_identifier = args.get("tpas_command")[1]
 
-        if (not self.tpas_command) or (self.tpas_command not in tpas_commands):
-            raise ValueError("Unsupported TPAS command requested.")
+        # *-list
+        elif self.tpas_command.endswith("-list") and len(args.get("tpas_command")) > 1:
+            self.tpas_list_modifier = str(args.get("tpas_command", ["_", "_"])[1]).lower()
+            if self.tpas_list_modifier not in ["expired", "expired-purge"]:
+                raise ValueError("Unsupported list command modifier, use 'expired' or 'expired-purge'.")
+
+        if self.tpas_command not in tpas_commands:
+            raise ValueError("Unknown TPAS command.")
 
         if "tpas_tags" in args.keys():
             args["_tags"] = list_to_dict(args.get("tpas_tags"))
@@ -37,6 +51,14 @@ class CommandRouter:
         self.action_name = action_name
 
     def __call__(self):
+        try:
+            self.call_wrapper()
+        except (ValueError, ThreatPatrolsException, ValidationError) as e:
+            logger.error(str(e))
+            logger.debug("stack-trace", exc_info=e)
+            exit(1)
+
+    def call_wrapper(self):
 
         # command: call
         # ===
@@ -56,7 +78,7 @@ class CommandRouter:
         # command: call-list
         # ===
         elif self.tpas_command == "call-list":
-            args = {}
+            args = self._handle_list_args()
             asyncio.run(self._async_caller(tpas_call_list, args))
 
         # command: task-get
@@ -68,11 +90,21 @@ class CommandRouter:
         # command: task-list
         # ===
         elif self.tpas_command == "task-list":
-            args = {}
+            args = self._handle_list_args()
             asyncio.run(self._async_caller(tpas_task_list, args))
 
         else:
-            raise ValueError("Unsupported TPAS command requested in __call__.")
+            raise ValueError("Unsupported TPAS command requested.")
+
+    def _handle_list_args(self):
+        args = {}
+        if not self.tpas_list_modifier:
+            return args
+        if self.tpas_list_modifier.startswith("expired"):
+            args["filter_expired_ttl"] = True
+        if self.tpas_list_modifier.endswith("-purge"):
+            args["purge_expired_ttl"] = True
+        return args
 
     async def _async_caller(self, func, kwargs):
         result = await func(**kwargs)

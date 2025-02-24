@@ -1,11 +1,14 @@
 from typing import Callable
 
+from pydantic import ValidationError
+
 tpas_action_commands = ["call"]
 tpas_non_action_commands = ["call-get", "call-list", "task-get", "task-list"]
 tpas_commands = tpas_action_commands + tpas_non_action_commands
 
 
 from .. import action_functions, action_models
+from ..exceptions import ThreatPatrolsException
 from ..shared.lib.logger_init import logger_get, logger_setlevel
 from ..shared.models import HealthResponse, TaskItem, TaskState
 from ..shared.validators.models import action_model_validator
@@ -20,8 +23,18 @@ action_models.HealthResponse = HealthResponse
 def load_cli_app(config, action: Callable):
 
     # Set the logger level early
-    logger_get(name=config.LOGGER_NAME)
+    logger = logger_get(name=config.LOGGER_NAME)
     logger_setlevel(name=config.LOGGER_NAME, loglevel=config.LOGGER_LEVEL)
+
+    try:
+        return load_cli_app_wrapper(config, action)
+    except (ValueError, ThreatPatrolsException, ValidationError) as e:
+        logger.error(str(e))
+        logger.debug("stack-trace", exc_info=e)
+        exit(1)
+
+
+def load_cli_app_wrapper(config, action: Callable):
 
     # Check action supplied models
     action_model_validator(action_models=action_models)

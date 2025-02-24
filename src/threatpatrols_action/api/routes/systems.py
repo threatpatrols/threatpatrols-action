@@ -1,6 +1,6 @@
-import psutil
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter
 
+from ...shared.lib.system_info import get_system_info
 from ...shared.models import HealthResponse
 
 router = APIRouter()
@@ -11,10 +11,5 @@ router = APIRouter()
     tags=["System"],
     summary="Get basic system-health and system-status data.",
 )
-async def health_check(background_tasks: BackgroundTasks) -> HealthResponse:
-    return HealthResponse(
-        status="healthy",
-        memory_usage=psutil.virtual_memory().percent,
-        cpu_usage=psutil.cpu_percent(),
-        background_tasks=len(background_tasks.tasks),
-    )
+async def health_check() -> HealthResponse:
+    return HealthResponse(**get_system_info())
