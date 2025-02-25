@@ -9,6 +9,7 @@ from .. import action_functions, action_models
 from ..exceptions import ThreatPatrolsException, generate_api_exception_response_handlers
 from ..shared.lib.logger_init import logger_get, logger_setlevel
 from ..shared.models import HealthResponse, TaskItem, TaskState
+from ..shared.validators.callbacks import callbacks_validator
 from ..shared.validators.models import action_model_validator
 from .lib.openapi import custom_openapi
 from .lib.swagger import get_swagger_docs_response
@@ -17,6 +18,8 @@ from .middlewares import load_middlewares
 action_models.Task = TaskItem
 action_models.TaskState = TaskState
 action_models.HealthResponse = HealthResponse
+
+EXAMPLE_CREDENTIAL_KEY = "credential01example"  # prevent production usage with example credential key value.
 
 
 def add_static_route(app: FastAPI, request_path: str, files_directory: str):
@@ -48,14 +51,15 @@ def load_api_app(config, action: Callable):
 
 def load_api_app_wrapper(config, action: Callable, logger):
 
-    logger.info(f"{config.TITLE} v{config.VERSION}")
-    logger.info(f"CONFIG_FILE = {str(config.CONFIG_FILE)}")
+    logger.info(f"{config.TITLE}: v{config.VERSION} | Threat Patrols Actions: v{config.TPAS_VERSION}")
+    logger.info(f"config_file={os.path.relpath(config.CONFIG_FILE)}")
+    logger.debug("debug=true")
 
-    # Prevent the default "exampleuser01" being used when not debug mode
-    if config.credentials.get("exampleuser01") and config.DEBUG is False:
-        raise ThreatPatrolsException("Attempting to start API with default 'exampleuser01' user in non debug-mode.")
-    elif config.credentials.get("exampleuser01"):
-        logger.warning("Default 'exampleuser01' enabled.")
+    # Prevent the default api key being available when not in debug mode
+    if config.credentials.get(EXAMPLE_CREDENTIAL_KEY) and config.DEBUG is False:
+        raise ThreatPatrolsException(f"Attempting to start API with {EXAMPLE_CREDENTIAL_KEY!r} in non debug-mode.")
+    elif config.credentials.get(EXAMPLE_CREDENTIAL_KEY):
+        logger.warning(f"Default {EXAMPLE_CREDENTIAL_KEY!r} enabled.")
 
     # Assign the primary action_function
     setattr(action_functions, config.ACTION_NAME, action)
@@ -71,6 +75,9 @@ def load_api_app_wrapper(config, action: Callable, logger):
 
     # Check action supplied models
     action_model_validator(action_models=action_models)
+
+    # Check the callbacks are valid
+    callbacks_validator(callbacks=config.callbacks)
 
     # Load routes
     from threatpatrols_action.api.routes import calls_routes, systems_routes, tasks_routes

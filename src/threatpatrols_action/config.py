@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from dynaconf import Dynaconf, Validator
+from dynaconf import Dynaconf, Validator  # type: ignore  # https://github.com/dynaconf/dynaconf/issues/651
 
 from . import __initials__, __title__, __version__
 

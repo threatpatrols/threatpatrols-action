@@ -3,7 +3,8 @@ import logging
 from hlid import HLID
 
 from ... import action_functions, action_models, config
-from ...shared.lib.action_caller import foreground_action_caller
+from ...exceptions import ThreatPatrolsException
+from ...shared.lib.callers import foreground_action_caller
 from ...shared.lib.casts import dict_to_flat_string
 from ...shared.lib.state import get_state_handler
 from ...shared.validators.hlids import validate_hlid
@@ -31,15 +32,13 @@ async def tpas_call(action_name: str, action_args: dict, call_id: str = None) ->
     action_response = await foreground_action_caller(action_function, call_id=call_id, **action_args)
 
     if not action_response:
-        return action_models.ActionItem(
-            error_messages=[f"No result received from foreground_action_caller() {action_name}"],
-            _tags=action_args["_tags"],
-        )
+        raise ThreatPatrolsException(f"Empty result from action {action_name!r}.")
 
     # sanity check and log
     assert call_id == action_response._tags.get("call_id")
     logger.info("Action end: " + dict_to_flat_string(data=action_response._tags))
 
+    # return all the things!
     return action_response.model_dump()
 
 
@@ -55,13 +54,13 @@ async def tpas_call_get(call_id: str) -> action_models.ActionItem:
 
 async def tpas_call_list(
     filter_expired_ttl: bool = False, purge_expired_ttl: bool = False
-) -> list[action_models.ActionListItem]:
+) -> list[action_models.ActionItemSummary]:
 
     calls = []
 
     if filter_expired_ttl or purge_expired_ttl:
         for item in await state_handler.find_states(key="calls", extension="out", filter_expired_ttl=True):
-            calls.append(action_models.ActionListItem(**item).model_dump())
+            calls.append(action_models.ActionItemSummary(**item).model_dump())
         if purge_expired_ttl:
             logger.warning(f"Purging {len(calls)} expired_ttl calls from state storage.")
             for call in calls:
@@ -74,6 +73,6 @@ async def tpas_call_list(
             calls = []
     else:
         for item in await state_handler.find_states(key="calls", extension="out", filter_expired_ttl=False):
-            calls.append(action_models.ActionListItem(**item).model_dump())
+            calls.append(action_models.ActionItemSummary(**item).model_dump())
 
     return calls

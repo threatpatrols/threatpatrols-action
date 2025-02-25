@@ -4,19 +4,17 @@ from pathlib import Path
 
 class UserAgent:
 
-    user_agents: list[str] = None
+    user_agents: list[str]
 
     def __init__(self, datafile=None, family="desktop") -> None:
         if not datafile:
             datafile = Path(__file__).parent.parent / f"data/{family}.json"
         if not Path(datafile).exists():
             raise ValueError("User agent datafile could not be found.")
+        with open(datafile, "r") as f:
+            self.user_agents = json.load(f)
 
-        if not self.user_agents:
-            with open(datafile, "r") as f:
-                self.user_agents = json.load(f)
-
-    def find(self, *matching_strings) -> str:
+    def find(self, *matching_strings) -> str | None:
         for user_agent in self.user_agents:
             match_count = 0
             for matching_string in matching_strings:
@@ -24,3 +22,5 @@ class UserAgent:
                     match_count += 1
             if match_count == len(matching_strings):
                 return user_agent
+
+        return None

@@ -1,46 +1,55 @@
 import logging
-from enum import IntEnum
+from typing import Any, Callable, Union
+
+from colorama import Back, Fore, Style
 
 try:
     from asgi_correlation_id import CorrelationIdFilter
 except ImportError:
-    CorrelationIdFilter = None
+    CorrelationIdFilter = None  # type: ignore
 
 
-LOGGING_DATE_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
+LOGGING_FORMAT = "%(asctime)s | %(levelname)s | __name__ | %(message)s"
+LOGGING_TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 LOGGING_FORMAT_W_REQUEST_ID = "%(asctime)s | %(levelname)s | __name__ | %(correlation_id)s | %(message)s"
-LOGGING_FORMAT_WO_REQUEST_ID = "%(asctime)s | %(levelname)s | __name__ | %(message)s"
 
 
-class LogLevelEnum(IntEnum):
-    all = 0
-    debug = 10
-    info = 20
-    warning = 30
-    error = 40
-    critical = 50
+class LoggerNone:
+    def __getattr__(self, _: Any) -> Callable[..., Any]:
+        def empty(*_: Any) -> None:
+            pass
+
+        return empty
 
 
-def logger_get(name: str, loglevel="warning", logfile=None, with_request_id=True) -> logging.Logger:
+def logger_get(
+    name: Union[str, None] = None, loglevel: str = "warning", logfile: Union[str, None] = None, with_request_id=True
+) -> Union[logging.Logger, LoggerNone]:
+
+    if name is None:
+        return LoggerNone()
+
     logger = logging.getLogger(name)
     if logger.handlers:
         return logger
 
-    logging_level = getattr(LogLevelEnum, loglevel)
-    logger.setLevel(logging_level.value)
+    logging_level = __logger_level_int(loglevel)
+    logger.setLevel(logging_level)
 
     if with_request_id:
         logging_format = LOGGING_FORMAT_W_REQUEST_ID.replace("__name__", name)
     else:
-        logging_format = LOGGING_FORMAT_WO_REQUEST_ID.replace("__name__", name)
+        logging_format = LOGGING_FORMAT.replace("__name__", name)
 
-    logging_formatter = logging.Formatter(fmt=logging_format, datefmt=LOGGING_DATE_FORMAT)
+    logging_formatter = LoggingFormatterWrapper(
+        fmt=logging_format, datefmt=LOGGING_TIMESTAMP_FORMAT, name=name, colorize_levelname=True
+    )
 
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging_level.value)
+    console_handler.setLevel(logging_level)
     console_handler.setFormatter(logging_formatter)
 
-    if with_request_id and CorrelationIdFilter:
+    if with_request_id and CorrelationIdFilter is not None:
         request_id = CorrelationIdFilter(uuid_length=24)
         console_handler.addFilter(request_id)
 
@@ -49,7 +58,7 @@ def logger_get(name: str, loglevel="warning", logfile=None, with_request_id=True
     try:
         if logfile:
             file_handler = logging.FileHandler(filename=logfile)
-            file_handler.setLevel(logging_level.value)
+            file_handler.setLevel(logging_level)
             file_handler.setFormatter(logging_formatter)
             logger.addHandler(file_handler)
     except (FileNotFoundError, PermissionError):
@@ -58,12 +67,65 @@ def logger_get(name: str, loglevel="warning", logfile=None, with_request_id=True
     return logger
 
 
-def logger_setlevel(name: str, loglevel: str) -> None:
-    logger = logging.getLogger(name)
-    logging_level = getattr(LogLevelEnum, loglevel)
+def logger_setlevel(name: str, loglevel: str) -> logging.Logger:
+    logger = logger_get(name)
 
-    logger.setLevel(logging_level.value)
-    for handler in logger.handlers:
-        handler.setLevel(logging_level.value)
+    logging_level = __logger_level_int(loglevel)
+    logger.setLevel(logging_level)
 
-    return None
+    if hasattr(logger.handlers, "__iter__"):
+        for handler in logger.handlers:
+            handler.setLevel(logging_level)
+
+    return logging.getLogger(name)
+
+
+def __logger_level_int(loglevel: str) -> int:
+    logging_level = logging.getLevelName(loglevel.upper())
+    try:
+        int(logging_level)
+    except ValueError:
+        raise ValueError(f"Unknown loglevel requested: {loglevel}")
+
+    return int(logging_level)
+
+
+class LoggingFormatterWrapper(logging.Formatter):
+    colorize_levelname: bool = False
+
+    def __init__(self, **kwargs: Any) -> None:
+        if "name" in kwargs:
+            kwargs["fmt"] = kwargs.get("fmt", Any).replace("__name__", kwargs["name"])
+            del kwargs["name"]
+        if "colorize_levelname" in kwargs:
+            self.colorize_levelname = True
+            del kwargs["colorize_levelname"]
+        logging.Formatter.__init__(self, **kwargs)
+
+    def format(self, record: logging.LogRecord) -> str:
+        if self.colorize_levelname:
+            return self.colorized_levelname_format(record)
+        return logging.Formatter.format(self, record)
+
+    def colorized_levelname_format(self, record: logging.LogRecord) -> str:
+        levelname = record.levelname.upper()
+
+        if levelname in ("CRITICAL", "FATAL"):
+            color_code = f"{Back.RED}{Fore.WHITE}{Style.BRIGHT}"
+        elif levelname == "ERROR":
+            color_code = Fore.RED
+        elif levelname in ("WARNING", "WARN"):
+            color_code = Fore.YELLOW
+        elif levelname == "INFO":
+            color_code = Fore.GREEN
+        elif levelname == "DEBUG":
+            color_code = f"{Fore.WHITE}{Style.BRIGHT}"
+        else:
+            color_code = None
+
+        if color_code:
+            record.levelname = "{}{}{}".format(color_code, record.levelname, Style.RESET_ALL)
+
+        record.levelname = record.levelname + " " * (8 - len(levelname))
+
+        return logging.Formatter.format(self, record)

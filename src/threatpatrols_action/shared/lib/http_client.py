@@ -1,75 +1,105 @@
 import logging
+from typing import Any, Optional
 
 import httpx
 
 from ... import config
 from ...exceptions import ThreatPatrolsException
 
-TITLE = config.TITLE
-VERSION = config.VERSION
-
 logger = logging.getLogger(config.LOGGER_NAME)
 
 
-def log_debug_request(request):
+async def httpx_debug_request(request):
     logger.debug(f"request: {request.method} {request.url}")
-    if "_content" in vars(request) and request._content:
-        logger.debug(f"request-data: {request._content}")
+    if "_content" in vars(request) and request._content:  # noqa
+        logger.debug(f"request-data: {request._content}")  # noqa
 
 
-def log_debug_response(response):
-    logger.debug(f"response: {response.request.method} {response.request.url}  | status:{response.status_code}")
+async def httpx_debug_response(response):
+    logger.debug(
+        f"response: {response.request.method} {response.request.url} "
+        f"{response.status_code=} {response.http_version=} {response.headers=}"
+    )
 
 
 class HttpClient:
-    request_timeout: int
+    proxy: str
     verify: bool
+    http2: bool
+    request_timeout: int  # seconds
     debug: bool
 
-    def __init__(self, request_timeout=10, verify=True, debug=False):
-        self.request_timeout = request_timeout
+    def __init__(
+        self,
+        proxy: str = None,
+        verify: bool = True,
+        http2: bool = False,
+        request_timeout: int = 15,
+        debug: bool = False,
+    ):
+        self.proxy = proxy
         self.verify = verify
+        self.http2 = http2
+        self.request_timeout = request_timeout
         self.debug = debug
 
     @property
     def user_agent(self) -> str:
-        return f"{TITLE.replace(' ', '')}/{VERSION}"
+        return f"{config.ACTION_NAME}/{config.VERSION}"
 
-    def get(self, **kwargs):
-        return self.request(method="GET", **kwargs)
+    async def get(self, **kwargs):
+        return await self.request(method="GET", **kwargs)
 
-    def post(self, **kwargs):
-        return self.request(method="POST", **kwargs)
+    async def post(self, **kwargs):
+        return await self.request(method="POST", **kwargs)
 
-    def patch(self, **kwargs):
-        return self.request(method="PATCH", **kwargs)
-
-    def request(self, **kwargs) -> httpx.Response:
-        event_hooks = {"request": [], "response": []}
+    async def request(
+        self,
+        method: str,
+        url: str,
+        headers: Optional[dict] = None,
+        data: Any = None,
+        follow_redirects: bool = True,
+        max_retries: int = 3,
+        __attempt: int = 0,
+    ):
+        event_hooks = {}
         if self.debug:
-            event_hooks["request"].append(log_debug_request)
-            event_hooks["response"].append(log_debug_response)
+            event_hooks["request"] = [httpx_debug_request]
+            event_hooks["response"] = [httpx_debug_response]
 
-        if "params" in kwargs and isinstance(kwargs["params"], dict):
-            kwargs["params"] = {k: v for (k, v) in kwargs["params"].items() if v or isinstance(v, int)}
+        if not headers:
+            headers = {"User-Agent": self.user_agent}
+        else:
+            headers = {**{"User-Agent": self.user_agent}, **headers}
 
         httpx_client = {
-            "headers": {"User-Agent": self.user_agent},
-            "http2": False,
+            "headers": headers,
+            "http2": self.http2,
             "timeout": self.request_timeout,
-            "trust_env": False,
             "verify": self.verify,
-            "event_hooks": event_hooks,
+            "follow_redirects": follow_redirects,
+            "trust_env": False,
         }
 
-        if "url" not in kwargs:
-            raise ThreatPatrolsException("Parameter 'url' for request() not present")
+        if self.proxy:
+            httpx_client["proxy"] = self.proxy
 
-        try:
-            with httpx.Client(**httpx_client) as client:
-                request = client.build_request(**kwargs)
-                response = client.send(request=request)
-        except (httpx.ConnectError, httpx.RemoteProtocolError):
-            raise ThreatPatrolsException(f"Unable to establish connection to {kwargs['url']!r}")
+        if event_hooks:
+            httpx_client["event_hooks"] = event_hooks
+
+        async with httpx.AsyncClient(**httpx_client) as client:
+            __attempt += 1
+            logger.debug(f"Request attempt {__attempt} of {max_retries} for {url!r}")
+            request = client.build_request(method=method, url=url, data=data)
+            try:
+                response = await client.send(request=request, stream=True)
+            except (httpx.ConnectError, httpx.RemoteProtocolError, httpx.HTTPError):
+                logger.warning(f"Request [{__attempt} of {max_retries}] failed for {request.method!r} {url!r}")
+                if __attempt < max_retries:
+                    return await self.request(method, url, headers, data, follow_redirects, max_retries, __attempt)
+                raise ThreatPatrolsException(f"Request failed after {__attempt} retries: {url!r}")
+
+            response.binary = b"".join([part async for part in response.aiter_raw()])
 
         return response

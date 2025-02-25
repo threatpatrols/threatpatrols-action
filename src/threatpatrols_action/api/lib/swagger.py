@@ -28,7 +28,7 @@ def get_swagger_docs_html(doc_expansion: str = "list") -> str:
             "filter": False,
         },
     )
-    return swagger_ui_html.body.decode()
+    return bytes(swagger_ui_html.body).decode()
 
 
 def get_swagger_docs_response(doc_expansion: str = "list") -> HTMLResponse:

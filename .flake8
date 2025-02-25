@@ -20,6 +20,7 @@ per-file-ignores =
 
     # E402 module level import not at top of file - https://www.flake8rules.com/rules/E402.html
     src/threatpatrols_action/cli/__init__.py: E402
+    src/threatpatrols_action/shared/callbacks/__init__.py: E402
 
     # F401 module imported but unused - https://www.flake8rules.com/rules/F401.html
     # E402 module level import not at top of file - https://www.flake8rules.com/rules/E402.html

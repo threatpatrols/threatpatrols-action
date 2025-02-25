@@ -3,18 +3,20 @@
 #
 
 import os
+from pathlib import Path
+from typing import Optional
 
 
 class GithubSummary:
 
-    filename: str
+    filename: Path
     content: str
 
-    def __init__(self, filename=None, content: str = ""):
+    def __init__(self, filename: Optional[Path] = None, content: str = "") -> None:
         if filename:
             self.filename = filename
         else:
-            self.filename = os.getenv("GITHUB_STEP_SUMMARY")
+            self.filename = Path(os.getenv("GITHUB_STEP_SUMMARY", "/tmp/github-step-summary.txt"))
 
         self.content = content
 
@@ -32,14 +34,14 @@ class GithubSummary:
 
 class GithubOutput:
 
-    filename: str
+    filename: Path
     content: str
 
-    def __init__(self, filename=None, content: str = ""):
+    def __init__(self, filename: Optional[Path] = None, content: str = "") -> None:
         if filename:
             self.filename = filename
         else:
-            self.filename = os.getenv("GITHUB_OUTPUT")
+            self.filename = Path(os.getenv("GITHUB_OUTPUT", "/tmp/github-output.txt"))
 
         self.content = content
 
@@ -55,13 +57,13 @@ class GithubOutput:
 class GithubInput:
 
     name: str
-    github_summary: GithubSummary
+    github_summary: GithubSummary | None
 
-    def __init__(self, name, github_summary: GithubSummary = None):
+    def __init__(self, name: str, github_summary: Optional[GithubSummary] = None) -> None:
         self.name = name
         self.github_summary = github_summary
 
-    def get(self, default=None, prefix="INPUT_"):
+    def get(self, default: Optional[str] = None, prefix: str = "INPUT_") -> str | None:
         env_name = f"{prefix}{self.name}".upper()
         value = os.getenv(env_name, default)
         if self.github_summary:

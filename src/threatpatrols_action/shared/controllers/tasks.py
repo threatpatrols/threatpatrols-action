@@ -1,8 +1,13 @@
 import logging
 
-from ... import config
+from fastapi import BackgroundTasks
+from hlid import HLID
+
+from ... import action_functions, config
+from ...shared.lib.callers import background_action_caller
+from ...shared.lib.casts import dict_to_flat_string
 from ...shared.lib.state import get_state_handler
-from ...shared.models import TaskItem, TaskListItem
+from ...shared.models import TaskItem, TaskItemSummary, TaskState
 from ...shared.validators.hlids import validate_hlid
 
 logger = logging.getLogger(config.LOGGER_NAME)
@@ -11,6 +16,27 @@ state_handler = get_state_handler(
     method_params=config.STATE__PARAMS,
     state_ttl_seconds=config.STATE__CALLS__TTL_SECONDS,
 )
+
+
+async def tpas_task(
+    action_name: str, action_args: dict, task_id: str = None, background_tasks: BackgroundTasks = None
+) -> TaskItem:
+
+    if not task_id:
+        task_id = str(HLID())
+    else:
+        validate_hlid(task_id, location_hint="tpas_task")
+
+    action_args["_tags"]["task_id"] = task_id
+    action_args["_tags"] = dict(sorted(action_args["_tags"].items()))
+
+    logger.info("Background create: " + dict_to_flat_string(data=action_args["_tags"]))
+    action_function = getattr(action_functions, action_name)
+    background_tasks.add_task(background_action_caller, action_function=action_function, task_id=task_id, **action_args)
+
+    return TaskItem(
+        task_id=task_id, state=TaskState.PENDING, _tags=action_args["_tags"], _callbacks=action_args["_callbacks"]
+    )
 
 
 async def tpas_task_get(task_id: str) -> TaskItem:
@@ -23,12 +49,12 @@ async def tpas_task_get(task_id: str) -> TaskItem:
     return TaskItem(**task_data)
 
 
-async def tpas_task_list(filter_expired_ttl: bool = False, purge_expired_ttl: bool = False) -> list[TaskListItem]:
+async def tpas_task_list(filter_expired_ttl: bool = False, purge_expired_ttl: bool = False) -> list[TaskItemSummary]:
 
     tasks = []
     if filter_expired_ttl or purge_expired_ttl:
         for item in await state_handler.find_states(key="tasks", filter_expired_ttl=True):
-            tasks.append(TaskListItem(**item))
+            tasks.append(TaskItemSummary(**item))
         if purge_expired_ttl:
             logger.warning(f"Purging {len(tasks)} expired_ttl tasks from state storage.")
             for task in tasks:
@@ -37,6 +63,6 @@ async def tpas_task_list(filter_expired_ttl: bool = False, purge_expired_ttl: bo
             tasks = []
     else:
         for item in await state_handler.find_states(key="tasks", filter_expired_ttl=False):
-            tasks.append(TaskListItem(**item))
+            tasks.append(TaskItemSummary(**item))
 
     return tasks

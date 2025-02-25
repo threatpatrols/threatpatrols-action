@@ -47,6 +47,9 @@ class CommandRouter:
         if "tpas_tags" in args.keys():
             args["_tags"] = list_to_dict(args.get("tpas_tags"))
 
+        if "tpas_callbacks" in args.keys():
+            args["_callbacks"] = args.get("tpas_callbacks")
+
         self.args = args
         self.action_name = action_name
 

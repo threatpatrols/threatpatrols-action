@@ -3,7 +3,7 @@ from typing import Any, get_args
 
 def dict_to_flat_string(data: dict) -> str:
     if not isinstance(data, dict):
-        return ""
+        return ""  # type: ignore
     return " ".join([f"{k}={data[k]!r}" for k in data.keys()])
 
 
@@ -30,18 +30,18 @@ def list_to_dict(data: list) -> dict:
 
 def str_to_int(data: str) -> int:
     try:
-        data = int(data)
+        result = int(data)  # type: ignore
     except Exception:
         raise ValueError("Value does not cast into int-type")
-    return data
+    return result
 
 
 def str_to_float(data: str) -> float:
     try:
-        data = float(data)
+        result = float(data)  # type: ignore
     except Exception:
         raise ValueError("Value does not cast into float-type")
-    return data
+    return result
 
 
 def annotation_to_type(annotation) -> Any:

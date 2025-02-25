@@ -25,7 +25,7 @@ def get_system_info() -> dict[str, str]:
     data = {**get_system_lsb(), **get_system_resources(), **get_system_uname()}
     for k in ["codename", "description", "version"]:
         data.pop(k, None)
-    return dict(sorted(data.items()))
+    return dict(sorted(data.items()))  # type: ignore
 
 
 def get_system_uname() -> dict[str, str]:
@@ -51,7 +51,7 @@ def get_system_lsb() -> dict[str, str]:
     return data
 
 
-def get_system_resources() -> dict[str, str]:
+def get_system_resources() -> dict[str, int | float]:
     return {
         "cpu_usage_p": psutil.cpu_percent(),
         "memory_usage_p": psutil.virtual_memory().percent,

@@ -2,11 +2,11 @@ import argparse
 import sys
 from typing import Any
 
+from colorama import Fore, Style
 from pydantic_core import PydanticUndefined
 
 from ...config import config
 from ...shared.lib.casts import annotation_to_type_name
-from ...shared.lib.color import ansicode
 from .. import tpas_action_commands, tpas_commands
 
 EPILOG = f"""
@@ -15,7 +15,7 @@ Some TPAS (Threat Patrols Actions) commands require additional positional argume
   - call-get/task-get: returns call/task data; must append a call_id/task_id as an additional arg.
   - call-list/task-list: returns a list of non-expired item-summaries, use 'expired' or 'expired-purge' args. 
 
-TPAS callbacks must be defined in your config.yml before they can be referenced in --tpas-callbacks.
+TPAS callbacks must be defined in your config before they can be referenced in --tpas-callbacks.
 
 Docs: https://docs.threatpatrols.com/tpas
 """
@@ -107,7 +107,7 @@ def parse_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
 
         if field_info.is_required():
             arg_help += (
-                f" {ansicode.WARNING}[required]{ansicode.ENDC} " f"{ansicode.OKBLUE}[tpas-command: call]{ansicode.ENDC}"
+                f" {Fore.YELLOW}[required]{Style.RESET_ALL} " f"{Fore.BLUE}[tpas-command: call]{Style.RESET_ALL}"
             )
 
         parser_argument_kwargs["help"] = arg_help
@@ -124,7 +124,7 @@ def parse_tpas_args(parser: argparse.ArgumentParser):
         metavar="<cmd> [<args> ...]",
         nargs="+",
         help="TPAS command {} {} {} {}[required]{} {}[see below]{}".format(
-            "{", ", ".join(tpas_commands), "}", ansicode.WARNING, ansicode.ENDC, ansicode.OKBLUE, ansicode.ENDC
+            "{", ", ".join(tpas_commands), "}", Fore.YELLOW, Style.RESET_ALL, Fore.BLUE, Style.RESET_ALL
         ),
     )
 
@@ -137,15 +137,15 @@ def parse_tpas_args(parser: argparse.ArgumentParser):
         required=False,
         metavar="<dict>",
         nargs="*",
-        help="Additional tags for this action, items provided in '<key>:<value>' format.",
+        help=f"Additional tags provided as a list of key/values in '<tag-name>{Fore.YELLOW}:{Style.RESET_ALL}<tag-value>' format.",
     )
 
     tpas_action_args.add_argument(
         "--tpas-callbacks",
         required=False,
-        metavar="<dict>",
+        metavar="<list>",
         nargs="*",
-        help="Callbacks for this action, items provided in '<callback-name>:<config-name>' format.",
+        help=f"Optional callbacks provided as a list in '<callback-name>{Fore.YELLOW}.{Style.RESET_ALL}<callback-config-key>' format.",
     )
 
     tpas_action_args.add_argument(

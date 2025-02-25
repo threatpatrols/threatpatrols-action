@@ -20,6 +20,7 @@ keywords = []
 # Repository = ""
 
 [tool.poetry.dependencies]
+# base dependencies from threatpatrols_action
 python = "^3.10"
 aiofiles = "*"                  # https://pypi.org/project/aiofiles/#history
 asgi-correlation-id = "*"       # https://pypi.org/project/asgi-correlation-id/#history
@@ -32,15 +33,18 @@ pydantic-core = "*"             # https://pypi.org/project/pydantic-core/#histor
 typing = "*"                    # https://pypi.org/project/typing/#history
 hlid = "*"                      # https://pypi.org/project/hlid/#history
 rich = "*"                      # https://pypi.org/project/rich/#history
+colorama = "*"                  # https://pypi.org/project/colorama/#history
+uvicorn = "*"                   # https://pypi.org/project/uvicorn/#history
 
 [tool.poetry.dev-dependencies]
 black = "*"
 flake8 = "*"
 isort = "*"
-# mypy = "*"
+mypy = "*"
 pycln = "^2.1.3"
 pytest = "*"
 pytest-asyncio = "*"
+types-psutil = "*"
 
 [tool.poetry.plugins."slap.plugins.check"]
 changelog = "slap.ext.checks.changelog:ChangelogValidationCheckPlugin"
@@ -51,7 +55,6 @@ release = "slap.ext.checks.release:ReleaseChecksPlugin"
 [tool.slap]
 typed = true
 release.branch = "dev"
-
 
 [tool.slap.test]
 check  = "slap check"

@@ -70,6 +70,28 @@ def generate_api_exception_response_handlers():
             content={"detail": user_detail},
         )
 
+    async def global_exception_handler(exc: Exception):
+        """
+        Handler for Exception
+        """
+        status_code = 500
+
+        log_message = f"Exception status_code={status_code} detail={str(exc)!r}"
+        user_detail = "Unable to complete the request, please try again later."
+
+        logger.error(msg=log_message)
+
+        if config.DEBUG:
+            exception_info = sys.exc_info()
+            if exception_info and len(exception_info) > 0:
+                logger.error(msg="Exception stacktrace_start", exc_info=True)
+                logger.error(msg="Exception stacktrace_end")
+
+        return JSONResponse(
+            status_code=status_code,
+            content={"detail": user_detail},
+        )
+
     async def fastapi_validation_error_handler(request: Request, exc: RequestValidationError):
         """
         Handler for FastAPI RequestValidationError (that inherits from Pydantic ValidationError)
@@ -111,7 +133,8 @@ def generate_api_exception_response_handlers():
         )
 
     return {
-        ThreatPatrolsApiException: threatpatrols_api_exception_handler,
         RequestValidationError: fastapi_validation_error_handler,
         ValueError: value_error_handler,
+        ThreatPatrolsApiException: threatpatrols_api_exception_handler,
+        Exception: global_exception_handler,
     }

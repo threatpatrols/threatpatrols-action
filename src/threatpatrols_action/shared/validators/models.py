@@ -8,7 +8,7 @@ def action_model_validator(action_models: object):
     Checks to confirm the action models are roughly okay
     """
 
-    check_models = ("ActionRequest", "ActionItem", "ActionListItem")
+    check_models = ("ActionRequest", "ActionItem", "ActionItemSummary")
 
     for action in check_models:
 
@@ -23,4 +23,9 @@ def action_model_validator(action_models: object):
         try:
             _ = model._tags
         except AttributeError:
-            raise ThreatPatrolsException(f"Action model {action!r} does not contain '_tags' attribute.")
+            raise ThreatPatrolsException(f"Action model {action!r} does not contain a '_tags' attribute.")
+
+        try:
+            _ = model._callbacks
+        except AttributeError:
+            raise ThreatPatrolsException(f"Action model {action!r} does not contain a '_callbacks' attribute.")

@@ -8,6 +8,7 @@ from ..lib.casts import annotation_to_type_name, list_to_dict, str_to_float, str
 class BaseModelPrivateHandler(BaseModel):
 
     _tags: Optional[dict[str, str]] = None
+    _callbacks: Optional[list[str]] = None
     model_config = ConfigDict(extra="allow")  # enabled for private _keys
 
     @field_validator("*", mode="before")
@@ -32,6 +33,8 @@ class BaseModelPrivateHandler(BaseModel):
     def model_post_init(self, *_, **__) -> None:
         if not self._tags:
             self._tags = {}
+        if not self._callbacks:
+            self._callbacks = []
         if (not self.model_config) or ("extra" not in self.model_config) or (self.model_config.get("extra") != "allow"):
             raise ValidationError("Model.model_config['extra'] must == allow")  # in order to accommodate _tags
 

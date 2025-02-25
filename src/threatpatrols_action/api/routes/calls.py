@@ -2,6 +2,7 @@ import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from hlid import HLID
 
 from ... import action_models, config
 from ...shared.controllers.calls import tpas_call, tpas_call_get, tpas_call_list
@@ -28,7 +29,7 @@ state_handler = get_state_handler(
 async def action_calls_get_list(
     api_key: Annotated[get_validated_api_key, Depends()],
     request_id: Annotated[get_request_id_header, Depends()],
-) -> list[action_models.ActionListItem]:
+) -> list[action_models.ActionItemSummary]:
     assert api_key is not None and len(api_key) > 0
     assert request_id is not None and len(request_id) > 0
 
@@ -70,7 +71,8 @@ async def action_calls_post(
     validate_reserved_action_tags(tags=action_args.get("_tags"))
 
     # add some request specific tags
+    call_id = str(HLID())
     action_args["_tags"]["request_id"] = request_id
     action_args["_tags"]["api_key_id"] = api_key.get("id")
 
-    return await tpas_call(action_name=ACTION_NAME, action_args=action_args)
+    return await tpas_call(action_name=ACTION_NAME, action_args=action_args, call_id=call_id)
