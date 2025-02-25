@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.responses import RedirectResponse
 
 from .. import action_functions, action_models
-from ..exceptions import generate_api_exception_response_handlers
+from ..exceptions import ThreatPatrolsException, generate_api_exception_response_handlers
 from ..shared.lib.logger_init import logger_get, logger_setlevel
 from ..shared.models import HealthResponse, TaskItem, TaskState
 from ..shared.validators.models import action_model_validator
@@ -38,8 +38,24 @@ def load_api_app(config, action: Callable):
     logger = logger_get(name=config.LOGGER_NAME)
     logger_setlevel(name=config.LOGGER_NAME, loglevel=config.LOGGER_LEVEL)
 
+    try:
+        return load_api_app_wrapper(config, action, logger)
+    except (ValueError, ThreatPatrolsException) as e:
+        logger.fatal(str(e))
+        logger.debug("stack-trace", exc_info=e)
+        exit(1)
+
+
+def load_api_app_wrapper(config, action: Callable, logger):
+
     logger.info(f"{config.TITLE} v{config.VERSION}")
     logger.info(f"CONFIG_FILE = {str(config.CONFIG_FILE)}")
+
+    # Prevent the default "exampleuser01" being used when not debug mode
+    if config.credentials.get("exampleuser01") and config.DEBUG is False:
+        raise ThreatPatrolsException("Attempting to start API with default 'exampleuser01' user in non debug-mode.")
+    elif config.credentials.get("exampleuser01"):
+        logger.warning("Default 'exampleuser01' enabled.")
 
     # Assign the primary action_function
     setattr(action_functions, config.ACTION_NAME, action)

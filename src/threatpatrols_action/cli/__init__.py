@@ -23,13 +23,13 @@ action_models.HealthResponse = HealthResponse
 def load_cli_app(config, action: Callable):
 
     # Set the logger level early
-    logger = logger_get(name=config.LOGGER_NAME)
+    logger = logger_get(name=config.LOGGER_NAME, with_request_id=False)
     logger_setlevel(name=config.LOGGER_NAME, loglevel=config.LOGGER_LEVEL)
 
     try:
         return load_cli_app_wrapper(config, action)
     except (ValueError, ThreatPatrolsException, ValidationError) as e:
-        logger.error(str(e))
+        logger.fatal(str(e))
         logger.debug("stack-trace", exc_info=e)
         exit(1)
 

@@ -54,7 +54,7 @@ class CommandRouter:
         try:
             self.call_wrapper()
         except (ValueError, ThreatPatrolsException, ValidationError) as e:
-            logger.error(str(e))
+            logger.fatal(str(e))
             logger.debug("stack-trace", exc_info=e)
             exit(1)
 
