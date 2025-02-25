@@ -28,7 +28,6 @@ class DynaconfSettings(Dynaconf):
 
     TPAS_VERSION: str
 
-    API__PORT: int
     STATE__TYPE: str
     STATE__PARAMS: dict
     STATE__CALLS__TTL_SECONDS: int
@@ -83,7 +82,6 @@ class DynaconfSettings(Dynaconf):
 setting_validators = [
     Validator("LOGGER_LEVEL", is_in=["debug", "info", "warning", "error", "critical"], default="info"),
     Validator("SWAGGER_UI_FAVICON_URL", is_type_of=str, default="https://www.threatpatrols.com/favicon.ico"),
-    Validator("API__PORT", is_type_of=int, default=11235),
     Validator("STATE__TYPE", is_type_of=str, default="filesystem"),
     Validator("STATE__PARAMS", is_type_of=dict, default={"root_path": "/tmp/tpas"}),
     Validator("STATE__CALLS__TTL_SECONDS", is_type_of=int, default=3600 * 2),
