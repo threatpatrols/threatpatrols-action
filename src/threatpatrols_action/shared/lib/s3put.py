@@ -1,5 +1,4 @@
 import logging
-import os.path
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -16,13 +15,13 @@ from ..lib.hash import hash_of_file
 logger = logging.getLogger(config.LOGGER_NAME)
 
 
-def send_s3_boto3(file: Path, uri: str) -> tuple[dict[str, Any], Path]:
-    logger.debug(f"send_s3_s3put(file={str(file)}, {uri=})")
+def s3put(file: Path, url: str) -> dict[str, Any]:
+    logger.debug(f"s3put(file={file.name}, {url=})")
 
-    if not uri:
-        raise ThreatPatrolsException("Empty <uri> supplied, must provide a value.")
+    if not url:
+        raise ThreatPatrolsException("Empty <url> supplied, must provide a value.")
 
-    if not os.path.isfile(file):
+    if not Path(file).is_file():
         raise ThreatPatrolsException("Unable to locate file to upload for S3 action.")
 
     session = get_session()
@@ -34,7 +33,7 @@ def send_s3_boto3(file: Path, uri: str) -> tuple[dict[str, Any], Path]:
         _msg = "Unable to locate S3 credentials.  Use any credential method supported by boto3."
         raise ThreatPatrolsException(_msg)
 
-    endpoint_url, bucket, key_prefix = _parse_uri(uri)
+    endpoint_url, bucket, object_key = _parse_url(url)
 
     s3boto3client = boto3client(
         "s3",
@@ -45,7 +44,6 @@ def send_s3_boto3(file: Path, uri: str) -> tuple[dict[str, Any], Path]:
         config=BotoConfig(signature_version="s3v4"),
     )
 
-    object_key = f"{key_prefix.strip('/')}/{file.name}"
     logger.debug(f"Sending {file.name!r} to {object_key!r}")
 
     try:
@@ -54,34 +52,34 @@ def send_s3_boto3(file: Path, uri: str) -> tuple[dict[str, Any], Path]:
                 Body=f,
                 Bucket=bucket,
                 Key=object_key,
-                ContentLength=os.path.getsize(file),
+                ContentLength=Path(file).stat().st_size,
                 ContentMD5=hash_of_file(file, hash_method="md5", base64_encoded=True),
             )
     except BotoCoreError as e:
         raise ThreatPatrolsException(e)  # Crimes!
 
-    return response, Path(object_key)
+    return response
 
 
-def _parse_uri(uri: str) -> tuple[str | None, str, str]:
-    parsed = urlparse(uri)
+def _parse_url(url: str) -> tuple[str | None, str, str]:
+    parsed = urlparse(url)
 
     if parsed.scheme in ("s3", "aws"):
         endpoint_url = None
         bucket = parsed.netloc
-        key_prefix = parsed.path.strip("/")
+        key = parsed.path.strip("/")
     elif parsed.scheme in ("gs", "gcp", "google"):
         endpoint_url = "https://storage.googleapis.com"
         bucket = parsed.netloc
-        key_prefix = parsed.path.strip("/")
+        key = parsed.path.strip("/")
     elif parsed.scheme in ("http", "https"):
         endpoint_url = f"{parsed.scheme}://{parsed.netloc}"
         bucket = parsed.path.strip("/").split("/")[0]
-        key_prefix = "/".join(parsed.path.strip("/").split("/")[1:])
+        key = "/".join(parsed.path.strip("/").split("/")[1:])
     else:
         raise ThreatPatrolsException(
-            "S3 uri supplied does not start with a supported <provider>, must start with 's3://' for "
+            "S3 url supplied does not start with a supported <provider>, must start with 's3://' for "
             "AWS, 'gs://' for GCP or 'http[s]://' for other S3 compatible endpoints.  See docs for detail."
         )
 
-    return endpoint_url, bucket, key_prefix
+    return endpoint_url, bucket, key

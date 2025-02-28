@@ -1,11 +1,12 @@
 from enum import Enum
 from typing import Annotated, Optional
 
-from pydantic import AfterValidator, AnyHttpUrl
+from pydantic import AfterValidator, AnyHttpUrl, AnyUrl
 
 from . import BaseModelPrivateHandler
 
 HttpUrlString = Annotated[AnyHttpUrl, AfterValidator(lambda v: str(v))]
+AnyUrlString = Annotated[AnyUrl, AfterValidator(lambda v: str(v))]
 
 
 class CallbackSend(str, Enum):
@@ -46,9 +47,8 @@ class CallbackHttp(Callback):
 
 
 class CallbackS3Put(Callback):
-    bucket: str
-    object_key: str
-    object_data_b64: str
+    url: str
+    send: CallbackSend = CallbackSend.OUTPUT
 
     @property
     def name(self):

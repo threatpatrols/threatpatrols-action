@@ -90,7 +90,7 @@ class HttpClient:
 
         async with httpx.AsyncClient(**httpx_client) as client:
             __attempt += 1
-            logger.debug(f"Request attempt {__attempt} of {max_retries} for {url!r}")
+            logger.debug(f"Request [attempt:{__attempt}/{max_retries}] {method} {url!r}")
             request = client.build_request(method=method, url=url, data=data)
             try:
                 response = await client.send(request=request, stream=True)
