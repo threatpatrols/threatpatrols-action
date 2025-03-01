@@ -5,6 +5,7 @@ import json
 import os
 import time
 from pathlib import Path
+from random import randrange
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -16,7 +17,7 @@ from .jsonable import jsonable_encoder
 
 DEFAULT_STATE_FILESYSTEM_TTL_SECONDS = 3600 * 8
 DEFAULT_STATE_FILESYSTEM_MAX_WAIT_SECONDS = 30
-DEFAULT_STATE_FILESYSTEM_SLEEP_WAIT_SECONDS = 0.5
+DEFAULT_STATE_FILESYSTEM_SLEEP_WAIT_SECONDS = 0.25
 DEFAULT_STATE_FILESYSTEM_MAX_RETRIES = 8
 DEFAULT_STATE_FILESYSTEM_ROOT_PATH = "/tmp/tpas"
 
@@ -77,7 +78,7 @@ class StateHandlerFilesystem:
             raise ThreatPatrolsException(f"State file {state_data_file} not found.")
 
         if not state_metadata_file.exists():
-            await asyncio.sleep(self.sleep_wait_seconds)
+            await self.jittery_sleep()
             return await self.load_state(key=key, _retry_count=_retry_count + 1)
 
         async with aiofiles.open(state_data_file, "r") as f:
@@ -87,18 +88,18 @@ class StateHandlerFilesystem:
             async with aiofiles.open(state_metadata_file, "r") as f:
                 state_metadata = json.loads(await f.read())
         except json.decoder.JSONDecodeError:
-            await asyncio.sleep(self.sleep_wait_seconds)
+            await self.jittery_sleep()
             return await self.load_state(key=key, _retry_count=_retry_count + 1)
 
         if state_metadata.get("key", "") != key:
             raise ThreatPatrolsException(f"Failed to read state mismatch {key=} in metadata file.")
 
         if int(state_metadata.get("len", "0")) != len(state_data_json):
-            await asyncio.sleep(self.sleep_wait_seconds)
+            await self.jittery_sleep()
             return await self.load_state(key=key, _retry_count=_retry_count + 1)
 
         if state_metadata.get("sha256", "") != hashlib.sha256(state_data_json.encode("utf8")).hexdigest():
-            await asyncio.sleep(self.sleep_wait_seconds)
+            await self.jittery_sleep()
             return await self.load_state(key=key, _retry_count=_retry_count + 1)
 
         return json.loads(state_data_json)
@@ -130,22 +131,21 @@ class StateHandlerFilesystem:
         state_data_file = self.key_file(key=key, extension=extension, mkdir_missing=True)
         state_metadata_file = self.key_file(key=key, extension=f"{extension}.metadata")
 
-        state_data_json = json.dumps(jsonable_encoder(data))
-        state_metadata_string = json.dumps(
-            {
-                "key": key,
-                "sha256": hashlib.sha256(state_data_json.encode("utf8")).hexdigest(),
-                "len": len(state_data_json),
-                "timestamp": str(datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0).isoformat()),
-            }
-        )
+        state_data = json.dumps(jsonable_encoder(data), separators=(",", ":"))
+        metadata = {
+            "key": key,
+            "sha256": hashlib.sha256(state_data.encode("utf8")).hexdigest(),
+            "len": len(state_data),
+            "timestamp": str(datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0).isoformat()),
+        }
+        state_metadata = json.dumps(metadata, separators=(",", ":"))
 
         state_writelock_file = await self.writelock_state(key=key)
 
         async with aiofiles.open(state_data_file, "w") as fw1:
-            await fw1.write(state_data_json)
+            await fw1.write(state_data)
         async with aiofiles.open(state_metadata_file, "w") as fw2:
-            await fw2.write(state_metadata_string)
+            await fw2.write(state_metadata)
 
         try:
             os.unlink(state_writelock_file)
@@ -164,17 +164,33 @@ class StateHandlerFilesystem:
         max_wait_until = time.time() + self.max_wait_seconds
 
         while writelock_file.exists():
-            await asyncio.sleep(self.sleep_wait_seconds)
+            await self.jittery_sleep()
             if time.time() > max_wait_until:
                 raise ThreatPatrolsException(f"Failed to acquire writelock after {self.max_wait_seconds} seconds.")
 
         with open(writelock_file, "w") as fw:
             fw.write(writelock_content)
-        async with aiofiles.open(writelock_file, "r") as fr:
-            if await fr.read() != writelock_content:
-                return await self.writelock_state(key=key, _retry_count=_retry_count + 1)
+        try:
+            async with aiofiles.open(writelock_file, "r") as fr:
+                if await fr.read() != writelock_content:
+                    await self.jittery_sleep()
+                    return await self.writelock_state(key=key, _retry_count=_retry_count + 1)
+        except FileNotFoundError:
+            await self.jittery_sleep()
+            return await self.writelock_state(key=key, _retry_count=_retry_count + 1)
 
         return writelock_file
+
+    async def jittery_sleep(self, sleep_seconds: Optional[float] = None, jitter_p: float = 0.75):
+        if not sleep_seconds:
+            sleep_seconds = self.sleep_wait_seconds
+        sleep_milliseconds = int(sleep_seconds * 1000)
+        jitter_half_milliseconds = int((sleep_seconds * jitter_p)/2 * 1000)
+        sleep_ms = randrange(
+            start=sleep_milliseconds - jitter_half_milliseconds, stop=sleep_milliseconds + jitter_half_milliseconds
+        )
+        # print(f"{sleep_ms=}")
+        await asyncio.sleep(sleep_ms / 1000)
 
 
 def get_state_handler(
