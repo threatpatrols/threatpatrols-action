@@ -185,7 +185,7 @@ class StateHandlerFilesystem:
         if not sleep_seconds:
             sleep_seconds = self.sleep_wait_seconds
         sleep_milliseconds = int(sleep_seconds * 1000)
-        jitter_half_milliseconds = int((sleep_seconds * jitter_p)/2 * 1000)
+        jitter_half_milliseconds = int((sleep_seconds * jitter_p) / 2 * 1000)
         sleep_ms = randrange(
             start=sleep_milliseconds - jitter_half_milliseconds, stop=sleep_milliseconds + jitter_half_milliseconds
         )

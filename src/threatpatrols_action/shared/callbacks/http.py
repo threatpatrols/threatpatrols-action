@@ -2,7 +2,7 @@ import logging
 
 from ... import action_models, config
 from ..lib.http_client import HttpClient
-from ..lib.string import string_substitutions
+from ..lib.substitutions import dict_value_substitutions, string_substitutions
 from ..models import CallbackHttp, CallbackHttpMethod, CallbackSend
 from ..validators.hlids import validate_hlid
 from . import state_handler
@@ -34,7 +34,7 @@ async def http_callback_wrapper(action_name: str, call_id: str, callback_config:
     request = {
         "method": callback.method.value,
         "url": string_substitutions(callback.url, substitutions=substitutions),
-        "headers": callback.headers,
+        "headers": dict_value_substitutions(callback.headers, substitutions=substitutions),
     }
 
     if not callback.method != CallbackHttpMethod.GET:

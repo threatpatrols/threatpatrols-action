@@ -3,8 +3,8 @@ This manual test is intended to be used as a stress tester by running many copie
 time to try and create race conditions.
 """
 
-import os
 import asyncio
+import os
 
 from hlid import HLID
 

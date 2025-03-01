@@ -4,7 +4,7 @@ from pathlib import Path
 from ... import action_models, config
 from ...shared.lib.s3put import s3put
 from ..lib.casts import dict_to_flat_string
-from ..lib.string import string_substitutions
+from ..lib.substitutions import string_substitutions
 from ..models import CallbackS3Put, CallbackSend
 from ..validators.hlids import validate_hlid
 from . import state_handler
