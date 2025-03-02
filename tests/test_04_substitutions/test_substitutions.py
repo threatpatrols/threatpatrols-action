@@ -46,7 +46,7 @@ def test_substitutions02c_not_exist():
 
     response = string_substitutions(value, substitutions)
     assert "happy" not in response
-    assert "{not_exist}" in response
+    assert response == "hello  world"
 
 
 def test_substitutions03a_double_token():
@@ -59,21 +59,6 @@ def test_substitutions03a_double_token():
 
     response = string_substitutions(value, substitutions)
     assert response == f"hello {task_id} world; another {call_id} here"
-
-
-# def test_substitutions03b_double_token():
-#
-#     task_id = str(HLID())
-#     call_id = str(HLID())
-#
-#     value = "hello {task_id_prefix} world; another {call_id_prefix} here"
-#     substitutions = {"task_id": task_id, "call_id": call_id}
-#
-#     task_id_prefix = task_id.split("-")[0]
-#     call_id_prefix = call_id.split("-")[0]
-#
-#     response = string_substitutions(value, substitutions)
-#     assert response == f"hello {task_id_prefix} world; another {call_id_prefix} here"
 
 
 def test_substitutions04a_env():

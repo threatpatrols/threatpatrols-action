@@ -31,27 +31,14 @@ def string_substitutions(value: str, substitutions: Optional[dict] = None, env_s
         for substitution_key, substitution_value in flatten_dict(substitutions).items():
             token_key = substitution_key.replace("_tags.", "tag.", 1)
             token = "{" + token_key + "}"
-
             if token in value:
                 replacements[token_key] = substitution_value
-
-            # # special case: call_id/task_id
-            # if token_key in ("task_id", "call_id") or token_key.endswith((".task_id", ".call_id")):
-            #     x_token_key = f"{token_key}_prefix"
-            #     if "{" + x_token_key + "}" in value:
-            #         replacements[x_token_key] = substitution_value.split("-")[0]
-            #
-            # # special case: action_name
-            # if token_key == "action_name" or token_key.endswith(".action_name"):
-            #     x_token_key = token_key.replace("action_name", "action_title")  # sketchy
-            #     if "{" + x_token_key + "}" in value:
-            #         replacements[x_token_key] = substitution_value.replace("-", " ").replace("_", " ").title()
 
     # create undefined replacements
     # ===
     for string_token in [tkn.strip() for _, tkn, _, _ in Formatter().parse(value) if tkn]:
         if string_token not in replacements.keys():
-            replacements[string_token] = "{" + string_token + "}"
+            replacements[string_token] = ""  # empty string
 
     # perform replacements
     # ===

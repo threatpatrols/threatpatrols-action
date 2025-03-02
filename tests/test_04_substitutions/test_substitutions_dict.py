@@ -37,7 +37,7 @@ def test_substitutions02b_not_exist():
 
     value = "hello {tag.foo.bar} world"
     response = string_substitutions(value, substitutions)
-    assert "{tag.foo.bar}" in response
+    assert response == "hello  world"
 
 
 def test_substitutions03_double_token():
