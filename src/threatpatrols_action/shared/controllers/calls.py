@@ -5,7 +5,6 @@ from hlid import HLID
 from ... import action_functions, action_models, config
 from ...exceptions import ThreatPatrolsException
 from ...shared.lib.callers import foreground_action_caller
-from ...shared.lib.casts import dict_to_flat_string
 from ...shared.lib.state import get_state_handler
 from ...shared.validators.hlids import validate_hlid
 
@@ -27,7 +26,7 @@ async def tpas_call(action_name: str, action_args: dict, call_id: str = None) ->
     action_args["_tags"]["call_id"] = call_id
     action_args["_tags"] = dict(sorted(action_args["_tags"].items()))
 
-    logger.info("Action start: " + dict_to_flat_string(data=action_args["_tags"]))
+    logger.info(f"Action start: {call_id=}")
     action_function = getattr(action_functions, action_name)
     action_response = await foreground_action_caller(action_function, call_id=call_id, **action_args)
 
@@ -36,7 +35,7 @@ async def tpas_call(action_name: str, action_args: dict, call_id: str = None) ->
 
     # sanity check and log
     assert call_id == action_response._tags.get("call_id")
-    logger.info("Action end: " + dict_to_flat_string(data=action_response._tags))
+    logger.info(f"Action end: {call_id=}")
 
     # return all the things!
     return action_response.model_dump()

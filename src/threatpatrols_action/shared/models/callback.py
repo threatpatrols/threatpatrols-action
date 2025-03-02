@@ -56,6 +56,10 @@ class CallbackS3Put(Callback):
 
 
 class CallbackSlack(Callback):
+    token: str
+    channel: str
+    message: str
+    send: Optional[CallbackSend] = None
 
     @property
     def name(self):
@@ -72,6 +76,7 @@ class CallbackSmtp(Callback):
     smtp_port: int
     smtp_user: str
     smtp_pass: str
+    send: CallbackSend = CallbackSend.SUMMARY
 
     @property
     def name(self):

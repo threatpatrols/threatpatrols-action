@@ -18,7 +18,6 @@ import os
 import subprocess
 
 import psutil
-from fastapi import BackgroundTasks
 
 
 def get_system_info() -> dict[str, str]:
@@ -53,7 +52,8 @@ def get_system_lsb() -> dict[str, str]:
 
 def get_system_resources() -> dict[str, int | float]:
     return {
-        "cpu_usage_p": psutil.cpu_percent(),
-        "memory_usage_p": psutil.virtual_memory().percent,
-        "background_tasks": len(BackgroundTasks().tasks),
+        "cpu_usage_p": (psutil.cpu_percent() / 100),
+        "memory_free": psutil.virtual_memory().free,
+        "memory_used": psutil.virtual_memory().used,
+        "memory_used_p": (psutil.virtual_memory().percent / 100),
     }

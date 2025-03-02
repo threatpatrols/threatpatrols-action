@@ -29,12 +29,13 @@ TASK_ITEM_EXAMPLE = """
 
 HEALTH_ITEM_EXAMPLE = """
 {
-  "background_tasks": 0,
-  "cpu_usage_p": 7.2,
+  "cpu_usage_p": 0.149,
+  "memory_used_p": 0.47,
   "machine": "x86_64",
-  "memory_usage_p": 46.1,
+  "memory_free": 7110524928,
+  "memory_used": 22781775872,
   "nodename": "computer",
-  "release": "24.04",
+  "release": "6.8.0-52-generic",
   "sysname": "Linux",
   "vendor": "Ubuntu"
 }

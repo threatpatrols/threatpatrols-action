@@ -34,6 +34,7 @@ psutil = "*"                    # https://pypi.org/project/psutil/#history
 pydantic = "*"                  # https://pypi.org/project/pydantic/#history
 pydantic-core = "*"             # https://pypi.org/project/pydantic-core/#history
 rich = "*"                      # https://pypi.org/project/rich/#history
+slack_sdk = "*"                 # https://pypi.org/project/slack_sdk/#history
 typing = "*"                    # https://pypi.org/project/typing/#history
 uvicorn = "*"                   # https://pypi.org/project/uvicorn/#history
 

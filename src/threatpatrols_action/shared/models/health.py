@@ -6,6 +6,7 @@ from . import HEALTH_ITEM_EXAMPLE
 
 
 class HealthResponse(BaseModel):
-    background_tasks: int
+    cpu_usage_p: float
+    memory_used_p: float
 
     model_config = ConfigDict(extra="allow", json_schema_extra={"example": json.loads(HEALTH_ITEM_EXAMPLE)})

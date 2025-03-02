@@ -56,9 +56,9 @@ def load_api_app_wrapper(config, action: Callable, logger):
     logger.debug("debug=true")
 
     # Prevent the default api key being available when not in debug mode
-    if config.credentials.get(EXAMPLE_CREDENTIAL_KEY) and config.DEBUG is False:
+    if config.api.credentials.get(EXAMPLE_CREDENTIAL_KEY) and config.DEBUG is False:
         raise ThreatPatrolsException(f"Attempting to start API with {EXAMPLE_CREDENTIAL_KEY!r} in non debug-mode.")
-    elif config.credentials.get(EXAMPLE_CREDENTIAL_KEY):
+    elif config.api.credentials.get(EXAMPLE_CREDENTIAL_KEY):
         logger.warning(f"Default {EXAMPLE_CREDENTIAL_KEY!r} enabled.")
 
     # Assign the primary action_function

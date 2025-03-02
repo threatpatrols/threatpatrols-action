@@ -5,7 +5,7 @@ from ..lib.http_client import HttpClient
 from ..lib.substitutions import dict_value_substitutions, string_substitutions
 from ..models import CallbackHttp, CallbackHttpMethod, CallbackSend
 from ..validators.hlids import validate_hlid
-from . import state_handler
+from . import get_callback_send_data
 
 logger = logging.getLogger(config.LOGGER_NAME)
 
@@ -24,29 +24,26 @@ async def http_callback_wrapper(action_name: str, call_id: str, callback_config:
     # confirm input and output state is available
     validate_hlid(call_id, location_hint="http_callback_wrapper")
     state_key = "calls/" + call_id.split("-")[0] + "/" + call_id
-
-    call_input = await state_handler.load_state(key=state_key, extension="in")
-    call_output = await state_handler.load_state(key=state_key, extension="out")
-
     callback = CallbackHttp(action_name=action_name, call_id=call_id, **callback_config)
-    substitutions = {**call_input.get("_tags", {}), **{"callback_name": callback.name}}
+    summary_data = await get_callback_send_data(
+        send=CallbackSend.SUMMARY, state_key=state_key, summary_model=action_models.ActionItemSummary
+    )
 
-    request = {
+    request_args = {
         "method": callback.method.value,
-        "url": string_substitutions(callback.url, substitutions=substitutions),
-        "headers": dict_value_substitutions(callback.headers, substitutions=substitutions),
+        "url": string_substitutions(callback.url, substitutions=summary_data),
+        "headers": dict_value_substitutions(callback.headers, substitutions=summary_data),
     }
 
     if not callback.method != CallbackHttpMethod.GET:
-        if callback.send == CallbackSend.SUMMARY:
-            request["data"] = action_models.ActionItemSummary(**call_output).model_dump()
-        elif callback.send == CallbackSend.OUTPUT:
-            request["data"] = action_models.ActionItem(**call_output).model_dump()
-        elif callback.send == CallbackSend.INPUT:
-            request["data"] = action_models.ActionItem(**call_input).model_dump()
+        request_args["data"] = await get_callback_send_data(
+            send=callback.send,
+            state_key=state_key,
+            summary_model=action_models.ActionItemSummary,
+        )
 
     http_client = HttpClient(proxy=callback.proxy, verify=callback.verify)
-    response = await http_client.request(**request)
+    response = await http_client.request(**request_args)
 
     log_message = (
         f"HTTP callback: status_code={response.status_code} "

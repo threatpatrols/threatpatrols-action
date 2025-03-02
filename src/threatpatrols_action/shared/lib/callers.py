@@ -71,8 +71,10 @@ async def foreground_action_caller(
         validate_hlid(call_id, location_hint="foreground_action_caller")
 
     kwargs["_tags"]["action_name"] = config.ACTION_NAME
+    kwargs["_tags"]["action_title"] = config.ACTION_NAME.replace("-", " ").replace("_", " ").title()
     kwargs["_tags"]["action_state"] = TaskState.PENDING
     kwargs["_tags"]["call_id"] = call_id
+    kwargs["_tags"]["call_id_prefix"] = call_id.split("-")[0]
     kwargs["_tags"]["call_timestamp"] = str(HLID(call_id).datetime.replace(microsecond=0).isoformat())
     kwargs["_tags"]["platform_node"] = platform.node()
     kwargs["_tags"]["platform_machine"] = platform.machine()
@@ -181,6 +183,7 @@ async def background_action_caller(action_function: Callable, *_, task_id: str =
 
     validate_hlid(task_id, location_hint="background_action_caller")
     assert task_id == kwargs.get("_tags", {}).get("task_id")
+    kwargs["_tags"]["task_id_prefix"] = task_id.split("-")[0]
 
     state_handler = get_state_handler(
         method=config.STATE__METHOD,
@@ -189,7 +192,9 @@ async def background_action_caller(action_function: Callable, *_, task_id: str =
     )
 
     call_id = str(HLID())
+
     kwargs["_tags"]["call_id"] = call_id
+    kwargs["_tags"]["call_id_prefix"] = call_id.split("-")[0]
 
     state_key = "tasks/" + task_id.split("-")[0] + "/" + task_id
     task_item = TaskItem(task_id=task_id, state=TaskState.ACTION_IN_PROGRESS, _tags=kwargs["_tags"])

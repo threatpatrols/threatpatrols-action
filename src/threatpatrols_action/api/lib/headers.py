@@ -37,11 +37,11 @@ def __lookup_validated_bearer_token(bearer_token: str):
     # NB: future improvement; lookup CREDENTIALS from something other than a static config file, eg Redis store.
     #
 
-    if not config.CREDENTIALS:
-        raise HTTPException(status_code=401, detail="No CREDENTIALS available; API authentication not possible.")
+    if not config.api.credentials:
+        raise HTTPException(status_code=401, detail="No api.credentials available; API authentication not possible.")
 
-    if config.CREDENTIALS.get(api_key_id, {}).get("secret", "") == api_key_secret:
-        credential = copy(config.CREDENTIALS.get(api_key_id))
+    if config.api.credentials.get(api_key_id, {}).get("secret", "") == api_key_secret:
+        credential = copy(config.api.credentials.get(api_key_id))
         credential["id"] = api_key_id
         credential["secret"] = "****"
         return credential

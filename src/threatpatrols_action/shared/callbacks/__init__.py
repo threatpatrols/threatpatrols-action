@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from ... import config
+from ...exceptions import ThreatPatrolsException
 from ..lib.state import get_state_handler
 
 state_handler = get_state_handler(
@@ -7,7 +10,47 @@ state_handler = get_state_handler(
     state_ttl_seconds=config.STATE__CALLS__TTL_SECONDS,
 )
 
-from ..models.callback import CallbackHttp, CallbackS3Put, CallbackSlack, CallbackSmtp, CallbackThreatpatrols
+from ..models.callback import (
+    CallbackHttp,
+    CallbackS3Put,
+    CallbackSend,
+    CallbackSlack,
+    CallbackSmtp,
+    CallbackThreatpatrols,
+)
+
+
+async def get_callback_send_data(send: CallbackSend, state_key: str, summary_model):
+    return await get_callback_send_filepath(send, state_key, summary_model, _return_data=True)
+
+
+async def get_callback_send_filepath(send: CallbackSend, state_key: str, summary_model, _return_data=False):
+
+    if not send:
+        return None
+
+    extension = "summary"
+    if send == CallbackSend.SUMMARY:
+        try:
+            summary_data = await state_handler.load_state(key=state_key, extension=extension)
+        except ThreatPatrolsException:
+            summary_data = None
+        if not summary_data:
+            output_data = await state_handler.load_state(key=state_key, extension="out")
+            summary_data = summary_model(**output_data).model_dump()
+            await state_handler.save_state(key=state_key, data=summary_data, extension=extension)
+    elif send == CallbackSend.OUTPUT:
+        extension = "out"
+    elif send == CallbackSend.INPUT:
+        extension = "in"
+    else:
+        raise ValueError(f"Unsupported CallbackSend {send=}")
+
+    if _return_data:
+        return await state_handler.load_state(key=state_key, extension=extension)
+    return Path(state_handler.key_file(key=state_key, extension=extension))
+
+
 from .http import http_callback
 from .s3put import s3put_callback
 from .slack import slack_callback
