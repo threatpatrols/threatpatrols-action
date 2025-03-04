@@ -3,16 +3,19 @@ from typing import Annotated, Optional
 
 from pydantic import AfterValidator, AnyHttpUrl, AnyUrl
 
+from ... import action_models
 from . import BaseModelPrivateHandler
 
 HttpUrlString = Annotated[AnyHttpUrl, AfterValidator(lambda v: str(v))]
 AnyUrlString = Annotated[AnyUrl, AfterValidator(lambda v: str(v))]
 
-
-class CallbackSend(str, Enum):
-    INPUT = "input"
-    OUTPUT = "output"
-    SUMMARY = "summary"
+# NB: All Actions must provide action_models.ActionCallbackSendsMap even if an empty dict.
+action_callback_sends = set(["input", "output", "summary"] + list(action_models.ActionCallbackSendsMap.keys()))
+CallbackSend = Enum(  # type: ignore[misc]
+    "CallbackSend",
+    ((value.upper(), value.lower()) for value in action_callback_sends),
+    type=str,
+)
 
 
 class CallbackHttpMethod(str, Enum):

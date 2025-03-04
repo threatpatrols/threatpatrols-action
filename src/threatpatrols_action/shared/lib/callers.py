@@ -119,11 +119,11 @@ async def foreground_action_caller(
 
     # handle callbacks
     result._tags["action_state"] = TaskState.CALLBACKS_IN_PROGRESS
-    await state_handler.save_state(key=state_key, data=result, extension="out")
+    await state_handler.save_state(key=state_key, data=result.model_dump(), extension="out")
     await handle_callbacks(callbacks=kwargs["_callbacks"], action_name=kwargs["_tags"]["action_name"], call_id=call_id)
 
     result._tags["action_state"] = TaskState.COMPLETE
-    await state_handler.save_state(key=state_key, data=result, extension="out")
+    await state_handler.save_state(key=state_key, data=result.model_dump(), extension="out")
     return result
 
 

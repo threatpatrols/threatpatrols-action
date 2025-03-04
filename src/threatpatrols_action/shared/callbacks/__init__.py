@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from ... import config
+from ... import action_models, config
 from ...exceptions import ThreatPatrolsException
 from ..lib.state import get_state_handler
 
@@ -44,7 +44,18 @@ async def get_callback_send_filepath(send: CallbackSend, state_key: str, summary
     elif send == CallbackSend.INPUT:
         extension = "in"
     else:
-        raise ValueError(f"Unsupported CallbackSend {send=}")
+        if send.value not in action_models.ActionCallbackSendsMap.keys():
+            raise ThreatPatrolsException(f"Unsupported CallbackSend {send=}")
+
+        extension = str(send.value).lower()
+        content = action_models.ActionCallbackSendsMap[send.value](
+            await state_handler.load_state(key=state_key, extension="out"),
+            await state_handler.load_state(key=state_key, extension="in"),
+        )
+        if content:
+            await state_handler.save_data(key=state_key, content=content, extension=extension)
+        if _return_data:
+            return content
 
     if _return_data:
         return await state_handler.load_state(key=state_key, extension=extension)
