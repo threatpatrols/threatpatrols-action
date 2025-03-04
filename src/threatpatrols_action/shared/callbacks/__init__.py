@@ -53,7 +53,7 @@ async def get_callback_send_filepath(send: CallbackSend, state_key: str, summary
             await state_handler.load_state(key=state_key, extension="in"),
         )
         if content:
-            await state_handler.save_data(key=state_key, content=content, extension=extension)
+            await state_handler.save_content(key=state_key, content=content, extension=extension)
         if _return_data:
             return content
 

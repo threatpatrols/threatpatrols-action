@@ -72,20 +72,26 @@ class StateHandlerFilesystem:
                 results.append(state)
         return results
 
-    async def load_data(self, key: str, extension: str = "data", _retry_count: int = 0) -> tuple[dict, bytes]:
+    async def load_state(self, key: str, extension: str = "state", _retry_count: int = 0):
+        _, data = await self.load_content(key=key, extension=extension, _retry_count=_retry_count)
+        if not data:
+            return None
+        return json.loads(data)
+
+    async def load_content(self, key: str, extension: str = "data", _retry_count: int = 0) -> tuple[dict, bytes]:
 
         data_file = self.key_file(key=key, extension=extension)
         metadata_file = self.key_file(key=key, extension=f"{extension}.metadata")
 
         if _retry_count > self.max_retries:
-            raise ThreatPatrolsException(f"Failed to load_data() after {self.max_retries} retries. {data_file=}")
+            raise ThreatPatrolsException(f"Failed to load_content() after {self.max_retries} retries. {data_file=}")
 
         if not data_file.exists():
             raise ThreatPatrolsException(f"State file {data_file} not found.")
 
         if not metadata_file.exists():
             await self.jittery_sleep()
-            return await self.load_data(key=key, extension=extension, _retry_count=_retry_count + 1)
+            return await self.load_content(key=key, extension=extension, _retry_count=_retry_count + 1)
 
         async with aiofiles.open(data_file, "rb") as f:
             data = await f.read()
@@ -99,7 +105,7 @@ class StateHandlerFilesystem:
                 logger.warning(f"Unable to JSON decode {metadata_file=}")
                 return {}, b""
             await self.jittery_sleep()
-            return await self.load_data(key=key, extension=extension, _retry_count=_retry_count + 1)
+            return await self.load_content(key=key, extension=extension, _retry_count=_retry_count + 1)
 
         if meta_data.get("key", "") != key:
             raise ThreatPatrolsException(f"Failed to read state mismatch {key=} in metadata file.")
@@ -109,30 +115,24 @@ class StateHandlerFilesystem:
                 logger.warning(f"Unable to locate 'bytes' in {metadata_file=}")
                 return {}, b""
             await self.jittery_sleep()
-            return await self.load_data(key=key, extension=extension, _retry_count=_retry_count + 1)
+            return await self.load_content(key=key, extension=extension, _retry_count=_retry_count + 1)
 
         if meta_data.get("sha256", "") != hashlib.sha256(data).hexdigest():
             if _retry_count > 2:
                 logger.warning(f"Unable to locate 'sha256' in {metadata_file=}")
                 return {}, b""
             await self.jittery_sleep()
-            return await self.load_data(key=key, extension=extension, _retry_count=_retry_count + 1)
+            return await self.load_content(key=key, extension=extension, _retry_count=_retry_count + 1)
 
-        logger.debug(f"StateHandlerFilesystem.load_data() {data_file=}")
+        logger.debug(f"StateHandlerFilesystem.load_content() {data_file=}")
         return meta_data, data
 
-    async def load_state(self, key: str, extension: str = "state", _retry_count: int = 0):
-        _, data = await self.load_data(key=key, extension=extension, _retry_count=_retry_count)
-        if not data:
-            return None
-        return json.loads(data)
-
-    async def save_data(self, key: str, content: bytes, filename: str | None = None, extension: str = "data") -> Path:
+    async def save_content(self, key: str, content: bytes, filename: str | None = None, extension: str = "data") -> Path:
         data_file = self.key_file(key=key, extension=extension, mkdir_missing=True)
         metadata_file = self.key_file(key=key, extension=f"{extension}.metadata")
 
         if not isinstance(content, bytes):
-            raise ThreatPatrolsException(f"Content for save_data() must be bytes, {type(content)} supplied.")
+            raise ThreatPatrolsException(f"Content for save_content() must be bytes, {type(content)} supplied.")
 
         content_metadata = {
             "key": key,
@@ -156,14 +156,14 @@ class StateHandlerFilesystem:
         except FileNotFoundError:
             pass
 
-        logger.debug(f"StateHandlerFilesystem.save_data() {data_file=}")
+        logger.debug(f"StateHandlerFilesystem.save_content() {data_file=}")
         return data_file
 
     async def save_state(self, key: str, data: Any, extension="state") -> Path:
         if not isinstance(data, (dict, list)):
             raise ThreatPatrolsException(f"Content for save_state() must be dict|list, {type(data)} supplied.")
         state_data = json.dumps(jsonable_encoder(data), separators=(",", ":")).encode("utf8")
-        return await self.save_data(key=key, content=state_data, extension=extension)
+        return await self.save_content(key=key, content=state_data, extension=extension)
 
     async def remove_state(self, key: str, extension: str = "state") -> Path:
         state_data_file = self.key_file(key=key, extension=extension, mkdir_missing=True)
