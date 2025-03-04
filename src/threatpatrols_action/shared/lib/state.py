@@ -127,7 +127,9 @@ class StateHandlerFilesystem:
         logger.debug(f"StateHandlerFilesystem.load_content() {data_file=}")
         return meta_data, data
 
-    async def save_content(self, key: str, content: bytes, filename: str | None = None, extension: str = "data") -> Path:
+    async def save_content(
+        self, key: str, content: bytes, filename: str | None = None, extension: str = "data"
+    ) -> Path:
         data_file = self.key_file(key=key, extension=extension, mkdir_missing=True)
         metadata_file = self.key_file(key=key, extension=f"{extension}.metadata")
 
