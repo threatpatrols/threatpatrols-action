@@ -32,7 +32,6 @@ boto3 = "*"                     # https://pypi.org/project/boto3/#history
 colorama = "*"                  # https://pypi.org/project/colorama/#history
 dynaconf = "*"                  # https://pypi.org/project/dynaconf/#history
 fastapi = "*"                   # https://pypi.org/project/fastapi/#history
-filetype = "*"                  # https://pypi.org/project/python-magic/#history
 hlid = "*"                      # https://pypi.org/project/hlid/#history
 "httpx[http2]" = "*"            # https://pypi.org/project/httpx/#history
 psutil = "*"                    # https://pypi.org/project/psutil/#history
