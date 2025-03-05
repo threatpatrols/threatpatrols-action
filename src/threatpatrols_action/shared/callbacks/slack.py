@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+import json
 import logging
 import mimetypes
 
@@ -21,6 +22,7 @@ import magic as filemagic
 from slack_sdk import WebClient
 
 from ... import action_models, config
+from ..lib.jsonable import jsonable_encoder
 from ..lib.substitutions import string_substitutions
 from ..models import CallbackSend, CallbackSlack
 from ..validators.hlids import validate_hlid
@@ -55,9 +57,16 @@ async def slack_callback_wrapper(action_name: str, call_id: str, callback_config
             state_key=state_key,
             summary_model=action_models.ActionItemSummary,
         )
+
+        if isinstance(send_data, (dict, list)):
+            send_data = json.dumps(jsonable_encoder(send_data), indent="  ").encode()
+            file_extension = "json"
+        else:
+            file_extension = guess_file_extension(send_data)
+
         response = client.files_upload_v2(
             content=send_data,
-            filename=f"{callback.send.value}.{guess_file_extension(send_data)}",
+            filename=f"{callback.send.value}.{file_extension}",
             channel=string_substitutions(callback.channel, substitutions=summary_data),
             initial_comment=string_substitutions(callback.message, substitutions=summary_data),
         )

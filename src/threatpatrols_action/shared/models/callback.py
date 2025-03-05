@@ -70,16 +70,16 @@ class CallbackSlack(Callback):
 
 
 class CallbackSmtp(Callback):
-    email_to: str
-    email_from: str
-    subject: str
-    body_text: str
-    body_html: str
     smtp_host: str
-    smtp_port: int
+    smtp_port: str
     smtp_user: str
     smtp_pass: str
-    send: CallbackSend = CallbackSend.SUMMARY
+    email_to: str
+    email_from: str
+    email_subject: str
+    email_text: Optional[str] = None
+    email_html: Optional[str] = None
+    send: Optional[CallbackSend] = None
 
     @property
     def name(self):
@@ -87,6 +87,8 @@ class CallbackSmtp(Callback):
 
 
 class CallbackThreatpatrols(Callback):
+
+    send: CallbackSend = CallbackSend.OUTPUT
 
     @property
     def name(self):
