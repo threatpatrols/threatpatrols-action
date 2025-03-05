@@ -55,6 +55,7 @@ def string_substitutions(value: str, substitutions: Optional[dict] = None, env_s
     for string_token in [tkn.strip() for _, tkn, _, _ in Formatter().parse(value) if tkn]:
         if string_token not in replacements.keys():
             replacements[string_token] = ""  # empty string
+            logger.warning(f"Substitution data token={string_token!r} not available for replacement in {value!r}")
 
     # perform replacements
     # ===

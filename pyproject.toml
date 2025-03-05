@@ -10,14 +10,18 @@ authors = ["Nicholas de Jong <ndejong@threatpatrols.com>"]
 license = "Apache-2.0"
 readme = "README.md"
 packages = [{ include = "threatpatrols_action", from = "src" }]
-classifiers = []
-keywords = []
+classifiers = [
+    "Topic :: Security",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License"
+]
+keywords = ["Threat Patrols", "TPAS", "Security", "Cybersecurity", "Automation", "Agents", "Agentic", "CICD", "Actions"]
 
 [tool.poetry.urls]
-# "Bug Tracker" = ""
-# Documentation = ""
-# Homepage = ""
-# Repository = ""
+Homepage = "https://docs.threatpatrols.com/threatpatrols-action"
+Documentation = "https://docs.threatpatrols.com/threatpatrols-action"
+Repository = "https://github.com/threatpatrols/threatpatrols-action"
+"Bug Tracker" = "https://github.com/threatpatrols/threatpatrols-action/issues"
 
 [tool.poetry.dependencies]
 # base dependencies from threatpatrols_action

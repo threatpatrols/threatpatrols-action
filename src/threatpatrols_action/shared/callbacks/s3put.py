@@ -51,7 +51,9 @@ async def s3put_callback_wrapper(action_name: str, call_id: str, callback_config
         state_key=state_key,
         summary_model=action_models.ActionItemSummary,
     )
-    response = s3put(url=string_substitutions(callback.url, substitutions=summary_data), file=send_filepath)
+    s3put_url = string_substitutions(callback.url, substitutions=summary_data)
+    logger.info(f"S3Put target {s3put_url}")
+    response = s3put(url=s3put_url, file=send_filepath)
 
     response_metadata = response.get("ResponseMetadata", {})
     logger.debug("s3put response headers: " + dict_to_flat_string(response_metadata.get("HTTPHeaders")))
