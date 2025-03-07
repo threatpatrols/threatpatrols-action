@@ -45,6 +45,7 @@ async def get_callback_send_filepath(send: CallbackSend, state_key: str, summary
     if not send:
         return None
 
+    content = None
     extension = "summary"
     if send == CallbackSend.SUMMARY:
         try:
@@ -70,11 +71,12 @@ async def get_callback_send_filepath(send: CallbackSend, state_key: str, summary
         )
         if content:
             await state_handler.save_content(key=state_key, content=content, extension=extension)
-        if _return_data:
-            return content
 
-    if _return_data:
+    if _return_data and content:
+        return content
+    elif _return_data:
         return await state_handler.load_state(key=state_key, extension=extension)
+
     return Path(state_handler.key_file(key=state_key, extension=extension))
 
 
