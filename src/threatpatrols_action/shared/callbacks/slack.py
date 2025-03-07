@@ -16,12 +16,11 @@
 
 import json
 import logging
-import mimetypes
 
-import magic as filemagic
 from slack_sdk import WebClient
 
 from ... import action_models, config
+from ..lib.filemagic import guess_file_extension
 from ..lib.jsonable import jsonable_encoder
 from ..lib.substitutions import string_substitutions
 from ..models import CallbackSend, CallbackSlack
@@ -51,6 +50,8 @@ async def slack_callback_wrapper(action_name: str, call_id: str, callback_config
     )
 
     client = WebClient(token=string_substitutions(callback.token))
+
+    # Message with attachment
     if callback.send:
         send_data = await get_callback_send_data(
             send=callback.send,
@@ -70,6 +71,8 @@ async def slack_callback_wrapper(action_name: str, call_id: str, callback_config
             channel=string_substitutions(callback.channel, substitutions=summary_data),
             initial_comment=string_substitutions(callback.message, substitutions=summary_data),
         )
+
+    # Message only (no attachment)
     else:
         response = client.chat_postMessage(
             channel=string_substitutions(callback.channel, substitutions=summary_data),
@@ -86,20 +89,3 @@ async def slack_callback_wrapper(action_name: str, call_id: str, callback_config
         return
 
     logger.error(log_message)
-
-
-def guess_file_extension(content):
-    if not isinstance(content, bytes):
-        raise ValueError("Must provide bytes-type content in guess_file_extension()")
-
-    mime_type = filemagic.from_buffer(content[0:2048], mime=True)
-    if not mime_type:
-        return "data"
-
-    mime_type = mime_type.replace("x-script.", "x-")  # Urgh!
-    kind = mimetypes.guess_extension(mime_type)
-
-    if not kind:
-        return "data"
-
-    return kind.strip(".")

@@ -15,7 +15,6 @@
 #
 import json
 import logging
-import mimetypes
 import smtplib
 import ssl
 from email import encoders
@@ -23,9 +22,8 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-import magic as filemagic
-
 from ... import action_models, config
+from ..lib.filemagic import guess_file_extension
 from ..lib.jsonable import jsonable_encoder
 from ..lib.substitutions import string_substitutions
 from ..models import CallbackSend, CallbackSmtp
@@ -91,23 +89,6 @@ async def smtp_callback_wrapper(action_name: str, call_id: str, callback_config:
     )
     logger.info(log_message)
     return
-
-
-def guess_file_extension(content):
-    if not isinstance(content, bytes):
-        raise ValueError("Must provide bytes-type content in guess_file_extension()")
-
-    mime_type = filemagic.from_buffer(content[0:2048], mime=True)
-    if not mime_type:
-        return "data"
-
-    mime_type = mime_type.replace("x-script.", "x-")  # Urgh!
-    kind = mimetypes.guess_extension(mime_type)
-
-    if not kind:
-        return "data"
-
-    return kind.strip(".")
 
 
 def smtp_send_message(message, callback, substitutions_data):

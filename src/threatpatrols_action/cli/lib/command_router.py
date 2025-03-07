@@ -23,8 +23,7 @@ from rich import print_json
 
 from ... import config
 from ...exceptions import ThreatPatrolsException
-from ...shared.controllers.calls import tpas_call, tpas_call_get, tpas_call_list
-from ...shared.controllers.tasks import tpas_task_get, tpas_task_list
+from ...shared.controllers import tpas_call, tpas_call_get, tpas_call_list, tpas_task_get, tpas_task_list
 from ...shared.lib.casts import list_to_dict
 from ...shared.lib.jsonable import jsonable_encoder
 from .. import action_models, tpas_commands
