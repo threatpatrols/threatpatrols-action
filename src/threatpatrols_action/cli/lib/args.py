@@ -15,6 +15,7 @@
 #
 
 import argparse
+import os
 import sys
 from typing import Any
 
@@ -47,10 +48,10 @@ def parse_action_args(fields: dict[str, Any] = None) -> dict:
     )
 
     # tpas args
-    parse_tpas_args(parser)
+    parser_tpas_args(parser)
 
     # dynamic args based on fields
-    parse_fields_args(parser, fields)
+    parser_fields_args(parser, fields)
 
     # --debug
     parser.add_argument(
@@ -81,10 +82,15 @@ def parse_action_args(fields: dict[str, Any] = None) -> dict:
     if parsed.quiet:
         parsed.debug = False
 
+    if os.getenv("__TPAS_TEST_SENTINEL_PARSE_ARGS") == "break":
+        import json
+        print(json.dumps(vars(parsed)))
+        exit()
+
     return vars(parsed)
 
 
-def parse_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
+def parser_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
 
     action_args = parser.add_argument_group(f"tpas-call {config.ACTION_NAME} args")
     is_require_override = not any(map(lambda v: v in tpas_action_commands, sys.argv))  # punishment
@@ -123,7 +129,7 @@ def parse_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
 
         if field_info.is_required():
             arg_help += (
-                f" {Fore.YELLOW}[required]{Style.RESET_ALL} " f"{Fore.BLUE}[tpas-command: call]{Style.RESET_ALL}"
+                f" {Fore.YELLOW}[required]{Style.RESET_ALL} " f"{Fore.CYAN}[tpas-command:call]{Style.RESET_ALL}"
             )
 
         parser_argument_kwargs["help"] = arg_help
@@ -131,16 +137,17 @@ def parse_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
         action_args.add_argument(*parser_argument_args, **parser_argument_kwargs)
 
 
-def parse_tpas_args(parser: argparse.ArgumentParser):
+def parser_tpas_args(parser: argparse.ArgumentParser):
 
     tpas_command_args = parser.add_argument_group("tpas-command")
 
     tpas_command_args.add_argument(
         "tpas_command",
         metavar="<cmd> [<args> ...]",
-        nargs="+",
-        help="TPAS command {} {} {} {}[required]{} {}[see below]{}".format(
-            "{", ", ".join(tpas_commands), "}", Fore.YELLOW, Style.RESET_ALL, Fore.BLUE, Style.RESET_ALL
+        nargs="*",
+        default=["call"],
+        help="TPAS command {} {} {} {}[default:call]{} {}[see below]{}".format(
+            "{", ", ".join(tpas_commands), "}", Fore.YELLOW, Style.RESET_ALL, Fore.CYAN, Style.RESET_ALL
         ),
     )
 

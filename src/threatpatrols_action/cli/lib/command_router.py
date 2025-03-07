@@ -15,6 +15,7 @@
 #
 
 import asyncio
+import os
 from logging import getLogger
 from typing import Optional
 
@@ -57,7 +58,7 @@ class CommandRouter:
                 raise ValueError("Unsupported list command modifier, use 'expired' or 'expired-purge'.")
 
         if self.tpas_command not in tpas_commands:
-            raise ValueError("Unknown TPAS command.")
+            raise ValueError(f"Unknown TPAS {self.tpas_command!r} command.")
 
         if "tpas_tags" in args.keys():
             args["_tags"] = list_to_dict(args.get("tpas_tags"))
@@ -81,38 +82,45 @@ class CommandRouter:
         # command: call
         # ===
         if self.tpas_command == "call":
+            func = tpas_call
             args = {
                 "action_name": self.action_name,
                 "action_args": action_models.ActionRequest(**self.args).model_dump(),
             }
-            asyncio.run(self._async_caller(tpas_call, args))
 
         # command: call-get
         # ===
         elif self.tpas_command == "call-get":
+            func = tpas_call_get
             args = {"call_id": self.tpas_identifier}
-            asyncio.run(self._async_caller(tpas_call_get, args))
 
         # command: call-list
         # ===
         elif self.tpas_command == "call-list":
+            func = tpas_call_list
             args = self._handle_list_args()
-            asyncio.run(self._async_caller(tpas_call_list, args))
 
         # command: task-get
         # ===
         elif self.tpas_command == "task-get":
+            func = tpas_task_get
             args = {"task_id": self.tpas_identifier}
-            asyncio.run(self._async_caller(tpas_task_get, args))
 
         # command: task-list
         # ===
         elif self.tpas_command == "task-list":
+            func = tpas_task_list
             args = self._handle_list_args()
-            asyncio.run(self._async_caller(tpas_task_list, args))
 
         else:
-            raise ValueError("Unsupported TPAS command requested.")
+            raise ValueError(f"Unsupported TPAS {self.tpas_command!r} command.")
+
+        if os.getenv("__TPAS_TEST_SENTINEL_CALL_WRAPPER") == "break":
+            import json
+            print(json.dumps(args))
+            exit()
+
+        asyncio.run(self._async_caller(func, args))
 
     def _handle_list_args(self):
         args = {}

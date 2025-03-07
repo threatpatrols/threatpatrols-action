@@ -40,7 +40,10 @@ async def handle_callbacks(callbacks: list[str], action_name: str, call_id: str)
 
     for callback in callbacks:
         if "." not in str(callback):
-            raise ThreatPatrolsException("Callbacks must be supplied in format 'callback-name.callback-config-key'.")
+            msg = "Callbacks must be supplied in format <callback-name>.<callback-config-key>"
+            if ":" in str(callback):
+                msg += "; HINT: did you mistakenly use a colon instead of a dot symbol?"
+            raise ThreatPatrolsException(msg)
         callback_name, callback_key_name = str(callback).split(".", maxsplit=1)
 
         try:
