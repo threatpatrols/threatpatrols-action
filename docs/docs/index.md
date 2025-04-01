@@ -9,8 +9,8 @@ Threat Patrols Actions (TPAS) are collections of well known security tools that 
 wrapped and kept up-to-date in a way that makes their use in continuous security automation pipelines _much_ easier.
 
 !!! warning "Attention"
-    These docs relate to the Threat Patrols Actions framework itself.   If you want a **big list** of 
-    Threat Patrols Actions and the documentation for them, you can find them [over here](actions.md).
+    These docs relate to the Threat Patrols Action framework itself.   If you want a **big list** of 
+    Threat Patrols Actions and their associated documentation, you can find them [over here](actions.md).
 
 ## Features
 * :octicons-plug-24: all actions are available as ready-to-run **API** microservices.
