@@ -43,7 +43,6 @@ async def smtp_callback(action_name: str, call_id: str, callback_config: dict):
 
 
 async def smtp_callback_wrapper(action_name: str, call_id: str, callback_config: dict):
-
     # confirm input and output state is available
     validate_hlid(call_id, location_hint="smtp_callback_wrapper")
     state_key = "calls/" + call_id.split("-")[0] + "/" + call_id
@@ -84,15 +83,12 @@ async def smtp_callback_wrapper(action_name: str, call_id: str, callback_config:
     # Send
     response = smtp_send_message(message=message.as_string(), callback=callback, substitutions_data=summary_data)
 
-    log_message = (
-        f"smtp callback: response={response} " f"action_name={callback.action_name} call_id={callback.call_id}"
-    )
+    log_message = f"smtp callback: response={response} action_name={callback.action_name} call_id={callback.call_id}"
     logger.info(log_message)
     return
 
 
 def smtp_send_message(message, callback, substitutions_data):
-
     smtp_host = string_substitutions(callback.smtp_host, substitutions=substitutions_data)
     smtp_port = int(string_substitutions(callback.smtp_port, substitutions=substitutions_data))
     smtp_user = string_substitutions(callback.smtp_user, substitutions=substitutions_data)

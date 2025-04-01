@@ -52,8 +52,8 @@ def add_redirect_route(app: FastAPI, request_path, redirect_url, tags=None, summ
 
 
 def load_api_app(config, action: Callable):
+    """Load the API app, returning a callable `FastAPI` entrypoint."""
 
-    # Set the logger level early
     logger = logger_get(name=config.LOGGER_NAME)
     logger_setlevel(name=config.LOGGER_NAME, loglevel=config.LOGGER_LEVEL)
 
@@ -66,7 +66,6 @@ def load_api_app(config, action: Callable):
 
 
 def load_api_app_wrapper(config, action: Callable, logger):
-
     logger.info(f"{config.TITLE}: v{config.VERSION} | Threat Patrols Actions: v{config.TPAS_VERSION}")
     logger.info(f"config_file={os.path.relpath(config.CONFIG_FILE)}")
     logger.debug("debug=true")

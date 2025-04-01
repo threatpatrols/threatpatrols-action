@@ -41,7 +41,6 @@ async def get_callback_send_data(send: CallbackSend, state_key: str, summary_mod
 
 
 async def get_callback_send_filepath(send: CallbackSend, state_key: str, summary_model, _return_data=False):
-
     if not send:
         return None
 

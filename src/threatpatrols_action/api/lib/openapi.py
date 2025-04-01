@@ -27,7 +27,6 @@ def custom_openapi(app):
 
 
 class CustomOpenApiSchema:
-
     app: FastAPI
 
     def __init__(self, app: FastAPI):

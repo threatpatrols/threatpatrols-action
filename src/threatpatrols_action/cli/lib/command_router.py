@@ -33,7 +33,6 @@ logger = getLogger(config.LOGGER_NAME)
 
 
 class CommandRouter:
-
     args: dict
     action_name: str
     tpas_command: str
@@ -41,7 +40,6 @@ class CommandRouter:
     tpas_list_modifier: Optional[str] = None
 
     def __init__(self, args: dict, action_name: str):
-
         if not args.get("tpas_command") or not isinstance(args.get("tpas_command"), list):
             raise ValueError("Invalid TPAS command.")
 
@@ -78,7 +76,6 @@ class CommandRouter:
             exit(1)
 
     def call_wrapper(self):
-
         # command: call
         # ===
         if self.tpas_command == "call":
@@ -117,6 +114,7 @@ class CommandRouter:
 
         if os.getenv("__TPAS_TEST_SENTINEL_CALL_WRAPPER") == "break":
             import json
+
             print(json.dumps(args))
             exit()
 

@@ -87,7 +87,6 @@ class CallbackSmtp(Callback):
 
 
 class CallbackThreatpatrols(Callback):
-
     send: CallbackSend = CallbackSend.OUTPUT
 
     @property

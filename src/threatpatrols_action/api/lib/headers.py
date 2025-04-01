@@ -36,7 +36,6 @@ def get_validated_api_key(credentials: HTTPAuthorizationCredentials = Security(H
 
 
 def __lookup_validated_bearer_token(bearer_token: str):
-
     if not bearer_token:
         raise HTTPException(status_code=401, detail="Invalid bearer_token.")
 

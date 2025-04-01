@@ -17,7 +17,7 @@
 import argparse
 import os
 import sys
-from typing import Any
+from typing import Any, Optional
 
 from colorama import Fore, Style
 from pydantic_core import PydanticUndefined
@@ -38,7 +38,7 @@ Docs: https://docs.threatpatrols.com/tpas
 """
 
 
-def parse_action_args(fields: dict[str, Any] = None) -> dict:
+def parse_action_args(fields: Optional[dict[str, Any]] = None) -> dict:
     parser = argparse.ArgumentParser(
         prog=f"tpas-{config.ACTION_NAME}",
         description=f"{config.TITLE}: v{config.VERSION} | Threat Patrols Actions: v{config.TPAS_VERSION}\n",
@@ -84,6 +84,7 @@ def parse_action_args(fields: dict[str, Any] = None) -> dict:
 
     if os.getenv("__TPAS_TEST_SENTINEL_PARSE_ARGS") == "break":
         import json
+
         print(json.dumps(vars(parsed)))
         exit()
 
@@ -91,7 +92,6 @@ def parse_action_args(fields: dict[str, Any] = None) -> dict:
 
 
 def parser_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
-
     action_args = parser.add_argument_group(f"tpas-call {config.ACTION_NAME} args")
     is_require_override = not any(map(lambda v: v in tpas_action_commands, sys.argv))  # punishment
     action_args.add_argument(
@@ -99,7 +99,6 @@ def parser_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
     )
 
     for field, field_info in fields.items():
-
         arg_full = f"--{field.replace('_', '-').strip()}"
         parser_argument_args = [arg_full]
 
@@ -128,9 +127,7 @@ def parser_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
         arg_help += "."
 
         if field_info.is_required():
-            arg_help += (
-                f" {Fore.YELLOW}[required]{Style.RESET_ALL} " f"{Fore.CYAN}[tpas-command:call]{Style.RESET_ALL}"
-            )
+            arg_help += f" {Fore.YELLOW}[required]{Style.RESET_ALL} {Fore.CYAN}[tpas-command:call]{Style.RESET_ALL}"
 
         parser_argument_kwargs["help"] = arg_help
 
@@ -138,7 +135,6 @@ def parser_fields_args(parser: argparse.ArgumentParser, fields: dict[str, Any]):
 
 
 def parser_tpas_args(parser: argparse.ArgumentParser):
-
     tpas_command_args = parser.add_argument_group("tpas-command")
 
     tpas_command_args.add_argument(

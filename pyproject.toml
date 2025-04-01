@@ -1,108 +1,119 @@
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+build-backend = "pdm.backend"
+requires = ["pdm-backend"]
 
-[tool.poetry]
-name = "threatpatrols-action"
-version = "0.1.0"
-description = ""
-authors = ["Nicholas de Jong <ndejong@threatpatrols.com>"]
-license = "Apache-2.0"
-readme = "README.md"
-packages = [{ include = "threatpatrols_action", from = "src" }]
+
+# ===
+[project]
+authors = [{name="Nicholas de Jong", email="ndejong@threatpatrols.com"}]
 classifiers = [
     "Topic :: Security",
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License"
 ]
-keywords = ["Threat Patrols", "TPAS", "Security", "Cybersecurity", "Automation", "Agents", "Agentic", "CICD", "Actions"]
+dependencies = [
+    "aiofiles>=22,<25",             # https://pypi.org/project/aiofiles/#history
+    "asgi-correlation-id>=4.3,<5",  # https://pypi.org/project/asgi-correlation-id/#history
+    "boto3>=1.26,<2",               # https://pypi.org/project/boto3/#history
+    "colorama>=0.4,<1",             # https://pypi.org/project/colorama/#history
+    "dynaconf>=3.0,<4",             # https://pypi.org/project/dynaconf/#history
+    "fastapi>=0.100,<1",            # https://pypi.org/project/fastapi/#history
+    "hlid>=0.1,<1",                 # https://pypi.org/project/hlid/#history
+    "httpx[http2]>=0.21,<1",        # https://pypi.org/project/httpx/#history
+    "psutil>=5.5,<8",               # https://pypi.org/project/psutil/#history
+    "pydantic>=2,<3",               # https://pypi.org/project/pydantic/#history
+    "pydantic-core>=2,<3",          # https://pypi.org/project/pydantic-core/#history
+    "python-magic>=0.4,<1",         # https://pypi.org/project/python-magic/#history  >> NB: "apt-get install libmagic1"
+    "rich>=13,<14",                 # https://pypi.org/project/rich/#history
+    "slack_sdk>=3.10,<4",           # https://pypi.org/project/slack_sdk/#history
+    "typing>=3.7,<4",               # https://pypi.org/project/typing/#history
+    "uvicorn>=0.20,<1"              # https://pypi.org/project/uvicorn/#history
+]
+description = "Provides libraries and utilities used by Threat Patrols Actions."
+license = {text = "Apache-2.0" }
+name = "threatpatrols-action"
+requires-python = ">=3.10,<4"
+version = "0.1.0"
+readme = "README.md"
+keywords = ["Threat Patrols", "TPAS", "Security", "Cybersecurity", "Automation", "AI-Agents", "CICD", "Actions"]
 
-[tool.poetry.urls]
-Homepage = "https://docs.threatpatrols.com/threatpatrols-action"
+[project.urls]
 Documentation = "https://docs.threatpatrols.com/threatpatrols-action"
-Repository = "https://github.com/threatpatrols/threatpatrols-action"
-"Bug Tracker" = "https://github.com/threatpatrols/threatpatrols-action/issues"
-
-[tool.poetry.dependencies]
-# base dependencies from threatpatrols_action
-python = "^3.10"
-aiofiles = "*"                  # https://pypi.org/project/aiofiles/#history
-asgi-correlation-id = "*"       # https://pypi.org/project/asgi-correlation-id/#history
-boto3 = "*"                     # https://pypi.org/project/boto3/#history
-colorama = "*"                  # https://pypi.org/project/colorama/#history
-dynaconf = "*"                  # https://pypi.org/project/dynaconf/#history
-fastapi = "*"                   # https://pypi.org/project/fastapi/#history
-hlid = "*"                      # https://pypi.org/project/hlid/#history
-"httpx[http2]" = "*"            # https://pypi.org/project/httpx/#history
-psutil = "*"                    # https://pypi.org/project/psutil/#history
-pydantic = "*"                  # https://pypi.org/project/pydantic/#history
-pydantic-core = "*"             # https://pypi.org/project/pydantic-core/#history
-python-magic = "*"              # https://pypi.org/project/python-magic/#history  >> NB: "apt-get install libmagic1"
-rich = "*"                      # https://pypi.org/project/rich/#history
-slack_sdk = "*"                 # https://pypi.org/project/slack_sdk/#history
-typing = "*"                    # https://pypi.org/project/typing/#history
-uvicorn = "*"                   # https://pypi.org/project/uvicorn/#history
+Repository = "https://github.com/threatpatrols/threatpatrols-action.git"
+Homepage = "https://github.com/threatpatrols/threatpatrols-action"
 
 
-[tool.poetry.dev-dependencies]
-black = "*"
-flake8 = "*"
-isort = "*"
-mypy = "*"
-pycln = "^2.1.3"                # https://pypi.org/project/pycln/#history
-pytest = "*"
-pytest-asyncio = "*"
-types-psutil = "*"
-
-[tool.poetry.plugins."slap.plugins.check"]
-changelog = "slap.ext.checks.changelog:ChangelogValidationCheckPlugin"
-general = "slap.ext.checks.general:GeneralChecksPlugin"
-poetry = "slap.ext.checks.poetry:PoetryChecksPlugin"
-release = "slap.ext.checks.release:ReleaseChecksPlugin"
-
+# ===
 [tool.slap]
 typed = true
 release.branch = "dev"
 
 [tool.slap.test]
-check  = "slap check"
-black  = "black --check src/ tests/"
-flake8 = "flake8 src/ tests/"
-isort  = "isort --check-only src/ tests/"
-# mypy   = "dmypy run src/"
-pycln  = "pycln src/ tests/ --check"
+check = "slap check"
+# mypy = "dmypy run src"
 pytest = "pytest tests/ -vv"
+ruff-format = "ruff format --check"
+ruff-lint = "ruff check"
 
 [tool.slap.run]
-format = "pycln src/ tests/ && black src/ tests/ && isort src/ tests/"
-boto3trim = """set -e \
-    && site_packages=$(python -c 'import site; print(\"\\n\".join(site.getsitepackages()))' | grep -m1 'site-packages') \
-    && rm -Rf /tmp/boto3trim; mkdir /tmp/boto3trim \
-    && mv "${site_packages}/botocore/data" "/tmp/boto3trim/data" \
-    && mkdir "${site_packages}/botocore/data" \
-    && cp -ra /tmp/boto3trim/data/*.json "${site_packages}/botocore/data/" \
-    && cp -ra /tmp/boto3trim/data/s3* "${site_packages}/botocore/data/" \
-    && echo "boto3trim done"
+format = "ruff format ."
+check-prereqs = """set -e; \
+    uv --help > /dev/null || (echo 'Failed uv prereq!' && exit 1); \
+    pdm --help > /dev/null || (echo 'Failed pdm prereq!' && exit 1); \
+    flit --help > /dev/null || (echo 'Failed flit prereq!' && exit 1); \
+    dpkg --get-selections | grep -v deinstall | grep libmagic1 >/dev/null || (echo 'Failed libmagic1 prereq' && exit 1); \
+    echo "Prereqs okay."
+"""
+docs-dev = """set -e; \
+    cd docs \
+    && touch uv.lock \
+    && uv run --active -- bash -xc 'mkdocs serve'
+"""
+docs-build = """set -e; \
+    cd docs \
+    && uv run --active -- bash -xc 'mkdocs build'
+"""
+package-build = """set -e; \
+    slap release --validate \
+    && slap test \
+    && slap publish --dry --build-directory ./dist
 """
 
+
+# ===
 [tool.mypy]
-strict = false
-python_version = "3.10"
-explicit_package_bases = true
-mypy_path = ["src"]
-namespace_packages = true
 pretty = true
+warn_redundant_casts = true
+#warn_unused_ignores = true
+exclude = "src/threatpatrols_action/shared/data/.*"
+namespace_packages = true
 show_error_codes = true
 show_error_context = true
 warn_no_return = true
-warn_redundant_casts = true
 warn_unreachable = true
-warn_unused_ignores = true
 
-[tool.isort]
-profile = "black"
-line_length = 120
-combine_as_imports = true
 
-[tool.black]
+# ===
+[tool.uv]
+dev-dependencies = [
+  "ruff",
+  "pytest",
+  # "mypy",
+  "pytest-asyncio",
+  "types-psutil",
+]
+
+
+# ===
+[tool.ruff]
 line-length = 120
+
+[tool.ruff.lint]
+ignore = ["E501"]  # E501 line too long (151 > 120 characters) - https://www.flake8rules.com/rules/E501.html
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**.py" = ["F401"]  # F401 module imported but unused
+"src/threatpatrols_action/cli/__init__.py" = ["E402"]  # E402 module level import not at top of file
+"src/threatpatrols_action/shared/callbacks/__init__.py" = ["E402"]  # E402 module level import not at top of file
+"src/threatpatrols_action/shared/models/__init__.py" = ["F401", "E402"]  # E402 module level import not at top of file
+"src/threatpatrols_action/cli/lib/args.py" = ["W291"]  # W291 trailing whitespace

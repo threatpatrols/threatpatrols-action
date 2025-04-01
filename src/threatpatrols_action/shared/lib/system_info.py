@@ -20,7 +20,7 @@ import subprocess
 import psutil
 
 
-def get_system_info() -> dict[str, str]:
+def get_system_info() -> dict[str, int | float | str]:
     data = {**get_system_lsb(), **get_system_resources(), **get_system_uname()}
     for k in ["codename", "description", "version"]:
         data.pop(k, None)

@@ -39,7 +39,7 @@ async def httpx_debug_response(response):
 
 
 class HttpClient:
-    proxy: str
+    proxy: Optional[str]
     verify: bool
     http2: bool
     request_timeout: int  # seconds
@@ -47,7 +47,7 @@ class HttpClient:
 
     def __init__(
         self,
-        proxy: str = None,
+        proxy: Optional[str] = None,
         verify: bool = True,
         http2: bool = False,
         request_timeout: int = 15,

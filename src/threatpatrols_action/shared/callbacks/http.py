@@ -36,7 +36,6 @@ async def http_callback(action_name: str, call_id: str, callback_config: dict):
 
 
 async def http_callback_wrapper(action_name: str, call_id: str, callback_config: dict):
-
     # confirm input and output state is available
     validate_hlid(call_id, location_hint="http_callback_wrapper")
     state_key = "calls/" + call_id.split("-")[0] + "/" + call_id

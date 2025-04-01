@@ -26,7 +26,6 @@ logger = logging.getLogger(config.LOGGER_NAME)
 
 
 def string_substitutions(value: str, substitutions: Optional[dict] = None, env_substitutions: bool = True):
-
     if not value:
         return value
 

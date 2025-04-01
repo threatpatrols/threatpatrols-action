@@ -43,7 +43,6 @@ logger = logging.getLogger(config.LOGGER_NAME)
 
 
 class StateHandlerFilesystem:
-
     state_ttl_seconds: int
     max_wait_seconds: int
     sleep_wait_seconds: float
@@ -81,7 +80,7 @@ class StateHandlerFilesystem:
         for path in sorted(root_path.rglob(f"*.{extension}.metadata"), reverse=True):
             path_hlid = path.name.split(".")[0]
             if (filter_expired_ttl is False and HLID(path_hlid).age < self.state_ttl_seconds) or (
-                (filter_expired_ttl is True and HLID(path_hlid).age > self.state_ttl_seconds)
+                filter_expired_ttl is True and HLID(path_hlid).age > self.state_ttl_seconds
             ):
                 state_key = f"{key}/" + path_hlid.split("-")[0] + "/" + path_hlid
                 state = await self.load_state(key=state_key, extension=extension)
@@ -95,7 +94,6 @@ class StateHandlerFilesystem:
         return json.loads(data)
 
     async def load_content(self, key: str, extension: str = "data", _retry_count: int = 0) -> tuple[dict, bytes]:
-
         data_file = self.key_file(key=key, extension=extension)
         metadata_file = self.key_file(key=key, extension=f"{extension}.metadata")
 
@@ -198,7 +196,6 @@ class StateHandlerFilesystem:
         return state_data_file
 
     async def writelock_state(self, key: str, extension: str, _retry_count=0) -> Path:
-
         if _retry_count > self.max_retries:
             raise ThreatPatrolsException(f"Failed to create writelock after {self.max_retries} retries.")
 
@@ -242,7 +239,6 @@ def get_state_handler(
     method_params: Optional[dict[str, str]] = None,
     state_ttl_seconds: Optional[int] = None,
 ) -> StateHandlerFilesystem:
-
     if not method_params:
         method_params = {}
 

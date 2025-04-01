@@ -19,7 +19,6 @@ from pathlib import Path
 
 
 class UserAgent:
-
     user_agents: list[str]
 
     def __init__(self, datafile=None, family="desktop") -> None:

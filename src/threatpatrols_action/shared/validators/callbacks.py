@@ -9,7 +9,6 @@ logger = logging.getLogger(config.LOGGER_NAME)
 
 
 def callbacks_validator(callbacks: Optional[dict] = None):
-
     if not callbacks:
         return
 
@@ -20,7 +19,6 @@ def callbacks_validator(callbacks: Optional[dict] = None):
 
 
 def validate_callback(callback_name, callback_definition):
-
     if callback_name not in callback_function_map.keys():
         raise ThreatPatrolsException(f"Callback {callback_name} not a known callback_function here.")
 

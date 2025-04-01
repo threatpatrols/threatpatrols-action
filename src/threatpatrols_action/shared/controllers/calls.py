@@ -15,6 +15,7 @@
 #
 
 import logging
+from typing import Optional
 
 from hlid import HLID
 
@@ -32,8 +33,7 @@ state_handler = get_state_handler(
 )
 
 
-async def tpas_call(action_name: str, action_args: dict, call_id: str = None) -> action_models.ActionItem:
-
+async def tpas_call(action_name: str, action_args: dict, call_id: Optional[str] = None) -> action_models.ActionItem:
     if not call_id:
         call_id = str(HLID())
     else:
@@ -58,7 +58,6 @@ async def tpas_call(action_name: str, action_args: dict, call_id: str = None) ->
 
 
 async def tpas_call_get(call_id: str) -> action_models.ActionItem:
-
     validate_hlid(call_id, location_hint="tpas_call_get")
 
     state_key = "calls/" + call_id.split("-")[0] + "/" + call_id
@@ -70,7 +69,6 @@ async def tpas_call_get(call_id: str) -> action_models.ActionItem:
 async def tpas_call_list(
     filter_expired_ttl: bool = False, purge_expired_ttl: bool = False
 ) -> list[action_models.ActionItemSummary]:
-
     calls = []
 
     if filter_expired_ttl or purge_expired_ttl:

@@ -30,7 +30,6 @@ logger = logging.getLogger(config.LOGGER_NAME)
 
 @dataclass
 class ExecuteCommand:
-
     command: str | None = None
     args: list | None = None
     env: dict | None = None
@@ -41,14 +40,12 @@ class ExecuteCommand:
 
 @dataclass
 class ExecuteCommandReturn:
-
     stdout: str | bytes | None = None
     stderr: str | bytes | None = None
     returncode: int | None = None
 
 
 def execute_command(command: ExecuteCommand) -> ExecuteCommandReturn:
-
     logger.info(
         f"{command.command=} "
         f"args=<len:{len(command.args) if command.args else '0'}> "

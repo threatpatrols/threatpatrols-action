@@ -20,7 +20,6 @@ from typing import Optional
 
 
 class GithubSummary:
-
     filename: Path
     content: str
 
@@ -45,7 +44,6 @@ class GithubSummary:
 
 
 class GithubOutput:
-
     filename: Path
     content: str
 
@@ -67,7 +65,6 @@ class GithubOutput:
 
 
 class GithubInput:
-
     name: str
     github_summary: GithubSummary | None
 

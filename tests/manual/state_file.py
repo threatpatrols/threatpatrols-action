@@ -16,7 +16,6 @@ state_handler = get_state_handler(method="filesystem", state_ttl_seconds=300)
 
 
 async def test_ten_thousand_iterations(hlid=COLLISION_HLID):
-
     extension = "test"
     key = "tests/" + hlid.split("-")[0] + "/" + hlid
 
@@ -26,7 +25,6 @@ async def test_ten_thousand_iterations(hlid=COLLISION_HLID):
         os.unlink(leftover_previous_writelock_file)
 
     for _ in range(0, 10000):
-
         data = {"foo": "bar", "this": [1, 2, 3, 4, 5, 6, 7, 8, 9, 0], "nonce": str(HLID()), "count": 0}
 
         await state_handler.save_state(key=key, data=data, extension=extension)

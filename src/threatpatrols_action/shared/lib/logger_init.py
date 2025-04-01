@@ -41,7 +41,6 @@ class LoggerNone:
 def logger_get(
     name: Union[str, None] = None, loglevel: str = "warning", logfile: Union[str, None] = None, with_request_id=True
 ) -> Union[logging.Logger, LoggerNone]:
-
     if name is None:
         return LoggerNone()
 

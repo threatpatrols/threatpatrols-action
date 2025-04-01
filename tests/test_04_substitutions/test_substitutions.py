@@ -11,7 +11,6 @@ from threatpatrols_action.shared.lib.substitutions import (
 
 
 def test_substitutions01_basic():
-
     value = "hello {cruel} world"
     substitutions = {"cruel": "happy"}
 
@@ -20,7 +19,6 @@ def test_substitutions01_basic():
 
 
 def test_substitutions02a_bad_token():
-
     value = "hello { cruel } world"  # << bad spaces around token
     substitutions = {"cruel": "happy"}
 
@@ -30,7 +28,6 @@ def test_substitutions02a_bad_token():
 
 
 def test_substitutions02b_bad_token():
-
     value = "hello { cruel } world"  # << bad spaces around token
     substitutions = {" cruel ": "happy"}
 
@@ -40,7 +37,6 @@ def test_substitutions02b_bad_token():
 
 
 def test_substitutions02c_not_exist():
-
     value = "hello {not_exist} world"
     substitutions = {"cruel": "happy"}
 
@@ -50,7 +46,6 @@ def test_substitutions02c_not_exist():
 
 
 def test_substitutions03a_double_token():
-
     task_id = str(HLID())
     call_id = str(HLID())
 
@@ -62,7 +57,6 @@ def test_substitutions03a_double_token():
 
 
 def test_substitutions04a_env():
-
     env_key = f"TEST_{str(uuid4().hex)[0:8].upper()}"
     env_value = str(HLID())
     os.environ[env_key] = env_value
@@ -77,7 +71,6 @@ def test_substitutions04a_env():
 
 
 def test_substitutions04b_double_env():
-
     env_key1 = f"TEST_{str(uuid4().hex)[0:8].upper()}"
     env_value1 = str(HLID())
     os.environ[env_key1] = env_value1
@@ -97,7 +90,6 @@ def test_substitutions04b_double_env():
 
 
 def test_substitutions05_combined():
-
     task_id = str(HLID())
     another_task_id = str(HLID())
 
@@ -115,7 +107,6 @@ def test_substitutions05_combined():
 
 
 def test_substitutions06_dict():
-
     task_id = str(HLID())
     substitutions = {"task_id": task_id}
     data = {"foo": "this is {task_id} here", "prefix": "{task_id}"}
@@ -127,7 +118,6 @@ def test_substitutions06_dict():
 
 
 def test_substitutions07_list():
-
     task_id = str(HLID())
     substitutions = {"task_id": task_id}
     data = ["this is {task_id} here", "{task_id}"]

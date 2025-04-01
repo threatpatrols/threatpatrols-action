@@ -2,7 +2,6 @@ from threatpatrols_action.shared.lib import casts
 
 
 def test_flatten_dict_01():
-
     x = {"foo": {"cat": "dog1"}, "bar": {"cat": "dog2"}, "sizzle": {"duck": {"cat": "dog3"}}}
     y = casts.flatten_dict(x, sep="-")
 
@@ -10,7 +9,6 @@ def test_flatten_dict_01():
 
 
 def test_dict_to_flat_string_01():
-
     x = {"foo": "dog1", "bar": "dog2", "sizzle": "dog3"}
     y = casts.dict_to_flat_string(x)
 
@@ -18,7 +16,6 @@ def test_dict_to_flat_string_01():
 
 
 def test_list_to_dict_01():
-
     x = ["foo:hello world", "bar: 12345 ", "URL:https://www.google.com"]
     y = casts.list_to_dict(x)
 
@@ -26,7 +23,6 @@ def test_list_to_dict_01():
 
 
 def test_str_to_numbers_01():
-
     x = "12345"
     y = casts.str_to_int(x)
     assert y == 12345

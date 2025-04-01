@@ -19,14 +19,12 @@ substitutions = {
 
 
 def test_substitutions01_basic_dict():
-
     value = "hello {tag.foo} world {this.cruel} other!"
     response = string_substitutions(value, substitutions)
     assert response == "hello cat world happy other!"
 
 
 def test_substitutions02a_bad_token():
-
     value = "hello { this.cruel } world"  # << bad spaces around token
     response = string_substitutions(value, substitutions)
     assert "happy" not in response
@@ -34,21 +32,18 @@ def test_substitutions02a_bad_token():
 
 
 def test_substitutions02b_not_exist():
-
     value = "hello {tag.foo.bar} world"
     response = string_substitutions(value, substitutions)
     assert response == "hello  world"
 
 
 def test_substitutions03_double_token():
-
     value = "hello {tag.task_id} world; another {tag.call_id} here"
     response = string_substitutions(value, substitutions)
     assert response == f"hello {task_id} world; another {call_id} here"
 
 
 def test_substitutions05_combined():
-
     env_value = str(HLID())
     os.environ["TEST_ENV_BEEP"] = env_value
 
@@ -61,7 +56,6 @@ def test_substitutions05_combined():
 
 
 def test_substitutions06_dict():
-
     data = {"foo": "this is {tag.task_id} here", "other": "{tag.call_id}"}
 
     response = dict_value_substitutions(data=data, substitutions=substitutions)
@@ -71,7 +65,6 @@ def test_substitutions06_dict():
 
 
 def test_substitutions07_list():
-
     data = ["this is {tag.task_id} here", "{tag.call_id}"]
 
     response = list_value_substitutions(data=data, substitutions=substitutions)

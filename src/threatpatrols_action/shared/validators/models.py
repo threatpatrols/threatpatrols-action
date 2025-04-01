@@ -11,7 +11,6 @@ def action_model_validator(action_models: object):
     check_models = ("ActionRequest", "ActionItem", "ActionItemSummary")
 
     for action in check_models:
-
         try:
             model: BaseModel = getattr(action_models, str(action))
         except AttributeError:

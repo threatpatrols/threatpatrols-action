@@ -2,7 +2,6 @@ from hlid import HLID
 
 
 def validate_hlid(value: str, location_hint=None):
-
     try:
         assert HLID(value).age > 0
     except Exception:

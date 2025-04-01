@@ -48,7 +48,6 @@ def get_swagger_docs_html(doc_expansion: str = "list") -> str:
 
 
 def get_swagger_docs_response(doc_expansion: str = "list") -> HTMLResponse:
-
     swagger_ui_html = get_swagger_docs_html(doc_expansion=doc_expansion)
     threatpatrols_custom_html = f'<link rel="stylesheet" href="{SWAGGER_UI_CSS_OVERRIDES_URL}">'
 

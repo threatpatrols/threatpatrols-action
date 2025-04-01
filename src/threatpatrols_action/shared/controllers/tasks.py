@@ -15,6 +15,7 @@
 #
 
 import logging
+from typing import Optional
 
 from fastapi import BackgroundTasks
 from hlid import HLID
@@ -35,9 +36,8 @@ state_handler = get_state_handler(
 
 
 async def tpas_task(
-    action_name: str, action_args: dict, task_id: str = None, background_tasks: BackgroundTasks = None
+    action_name: str, action_args: dict, task_id: str = None, background_tasks: Optional[BackgroundTasks] = None
 ) -> TaskItem:
-
     if not task_id:
         task_id = str(HLID())
     else:
@@ -56,7 +56,6 @@ async def tpas_task(
 
 
 async def tpas_task_get(task_id: str) -> TaskItem:
-
     validate_hlid(task_id, location_hint="tpas_task_get")
 
     state_key = "tasks/" + task_id.split("-")[0] + "/" + task_id
@@ -66,7 +65,6 @@ async def tpas_task_get(task_id: str) -> TaskItem:
 
 
 async def tpas_task_list(filter_expired_ttl: bool = False, purge_expired_ttl: bool = False) -> list[TaskItemSummary]:
-
     tasks = []
     if filter_expired_ttl or purge_expired_ttl:
         for item in await state_handler.find_states(key="tasks", filter_expired_ttl=True):

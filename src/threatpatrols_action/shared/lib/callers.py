@@ -34,7 +34,6 @@ logger = logging.getLogger(config.LOGGER_NAME)
 
 
 async def handle_callbacks(callbacks: list[str], action_name: str, call_id: str):
-
     if not isinstance(callbacks, list):
         raise ThreatPatrolsException("Callbacks must be supplied as list of callback names.")
 
@@ -55,7 +54,6 @@ async def handle_callbacks(callbacks: list[str], action_name: str, call_id: str)
 
 
 async def callback_caller(callback_name: str, callback_key_name: str, action_name: str, call_id: str):
-
     # validate the call_id
     validate_hlid(call_id, location_hint="callback_caller")
 
@@ -156,7 +154,6 @@ def background_task_observability(func: Callable) -> Callable:
 
     @wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> None:
-
         #
         # NB: failures inside this function are >>SILENT<<  If something related to background tasks is not
         # working, then consider this function carefully.  Don't be in a rush to change the code in this function!

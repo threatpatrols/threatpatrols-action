@@ -6,14 +6,12 @@ from ..lib.casts import annotation_to_type_name, list_to_dict, str_to_float, str
 
 
 class BaseModelPrivateHandler(BaseModel):
-
     _tags: Optional[dict[str, str]] = None
     _callbacks: Optional[list[str]] = None
     model_config = ConfigDict(extra="allow")  # enabled for private _keys
 
     @field_validator("*", mode="before")
     def field_casts(cls, value, validation):
-
         field_type_name = annotation_to_type_name(cls.model_fields.get(validation.field_name).annotation)
 
         # cast dict types
@@ -39,7 +37,6 @@ class BaseModelPrivateHandler(BaseModel):
             raise ValidationError("Model.model_config['extra'] must == allow")  # in order to accommodate _tags
 
     def model_dump(self, *args, include_private=True, exclude_extra=True, **kwargs):
-
         dump_data = super().model_dump(*args, **kwargs)  # NB: includes private
         keys = set(list(dump_data.keys()) + list(self.model_fields.keys()) + list(self.__private_attributes__.keys()))
 
